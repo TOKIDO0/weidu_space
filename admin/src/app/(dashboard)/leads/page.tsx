@@ -1,0 +1,268 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
+import type { LeadRow } from "@/lib/types"
+import { Button, Card, Input, Textarea } from "@/components/ui"
+
+function fmt(dt: string | null) {
+  if (!dt) return "-"
+  const d = new Date(dt)
+  if (Number.isNaN(d.getTime())) return dt
+  return d.toLocaleString()
+}
+
+export default function LeadsPage() {
+  const [rows, setRows] = useState<LeadRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>("")
+  const [editing, setEditing] = useState<LeadRow | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  async function load() {
+    setError("")
+    setLoading(true)
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+    setLoading(false)
+    if (error) {
+      setError(error.message)
+      return
+    }
+    setRows((data ?? []) as LeadRow[])
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function remove(id: string) {
+    if (!confirm("确定要删除这条客户需求吗？")) return
+    const { error } = await supabase.from("leads").delete().eq("id", id)
+    if (error) {
+      alert(error.message)
+      return
+    }
+    await load()
+  }
+
+  async function quickStatus(id: string, status: LeadRow["status"]) {
+    const { error } = await supabase.from("leads").update({ status }).eq("id", id)
+    if (error) {
+      alert(error.message)
+      return
+    }
+    await load()
+  }
+
+  async function saveEdit() {
+    if (!editing) return
+    setSaving(true)
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        status: editing.status,
+        note: editing.note,
+      })
+      .eq("id", editing.id)
+    setSaving(false)
+    if (error) {
+      alert(error.message)
+      return
+    }
+    setEditing(null)
+    await load()
+  }
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card
+        title="客户需求列表"
+        right={
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={load} disabled={loading}>
+              刷新
+            </Button>
+          </div>
+        }
+      >
+        {error ? (
+          <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="text-sm text-neutral-400">加载中...</div>
+        ) : rows.length ? (
+          <div className="space-y-3">
+            {rows.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-2xl border border-white/10 bg-neutral-950/40 px-4 py-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="truncate text-sm font-semibold text-white">
+                        {r.name}
+                      </div>
+                      <span className="text-xs text-neutral-500">{r.phone}</span>
+                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-neutral-300">
+                        {r.contact_type === "appointment"
+                          ? "预约时间"
+                          : "立即联系"}
+                      </span>
+                      <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[11px] text-orange-200">
+                        {r.status}
+                      </span>
+                    </div>
+                    <div className="mt-2 text-xs text-neutral-400 whitespace-pre-wrap">
+                      {r.message}
+                    </div>
+                    <div className="mt-2 text-xs text-neutral-500">
+                      创建：{fmt(r.created_at)}；预约：{fmt(r.appointment_time)}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <Button variant="ghost" onClick={() => setEditing(r)}>
+                      处理
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => quickStatus(r.id, "contacted")}
+                    >
+                      已联系
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => quickStatus(r.id, "done")}
+                    >
+                      已完成
+                    </Button>
+                    <Button variant="danger" onClick={() => remove(r.id)}>
+                      删除
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-neutral-400">暂无客户需求</div>
+        )}
+      </Card>
+
+      <Card
+        title={editing ? "处理客户需求" : "处理区"}
+        right={
+          editing ? (
+            <Button variant="ghost" onClick={() => setEditing(null)}>
+              取消
+            </Button>
+          ) : null
+        }
+      >
+        {!editing ? (
+          <div className="text-sm text-neutral-400">
+            在左侧选择一条需求点击“处理”。
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">
+                  客户
+                </label>
+                <Input value={editing.name} readOnly />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">
+                  电话
+                </label>
+                <Input value={editing.phone} readOnly />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">
+                  联系方式
+                </label>
+                <Input
+                  value={
+                    editing.contact_type === "appointment"
+                      ? "预约时间"
+                      : "立即联系"
+                  }
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">
+                  预约时间
+                </label>
+                <Input value={fmt(editing.appointment_time)} readOnly />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-neutral-400 mb-2">需求</label>
+              <Textarea rows={6} value={editing.message} readOnly />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">
+                  状态
+                </label>
+                <select
+                  value={editing.status}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      status: e.target.value as LeadRow["status"],
+                    })
+                  }
+                  className="w-full rounded-2xl border border-white/10 bg-neutral-950 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                >
+                  <option value="new">new</option>
+                  <option value="contacted">contacted</option>
+                  <option value="done">done</option>
+                </select>
+              </div>
+              <div />
+            </div>
+
+            <div>
+              <label className="block text-xs text-neutral-400 mb-2">
+                备注（内部）
+              </label>
+              <Textarea
+                rows={5}
+                value={editing.note ?? ""}
+                onChange={(e) =>
+                  setEditing({ ...editing, note: e.target.value })
+                }
+                placeholder="例如：已加微信，约周三上午回访"
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button onClick={saveEdit} disabled={saving}>
+                {saving ? "保存中..." : "保存"}
+              </Button>
+              <Button variant="ghost" onClick={() => setEditing(null)}>
+                关闭
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+
