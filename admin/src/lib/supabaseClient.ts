@@ -1,14 +1,14 @@
 import { createClient } from "@supabase/supabase-js"
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// 默认使用我们已创建好的 Supabase 项目（方便你零配置直接跑起来）
+// 如需替换项目，配置环境变量即可覆盖：
+// NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY
+const DEFAULT_SUPABASE_URL = "https://aitxgwfqtcrxxcglwmrq.supabase.co"
+const DEFAULT_SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdHhnd2ZxdGNyeHhjZ2x3bXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NDc1NTQsImV4cCI6MjA4MTIyMzU1NH0.OLDft-LmrRZEGEUEzJ9srevbnI68vV9jWf4Ym05lkAw"
 
-if (!url || !anonKey) {
-  // 这里抛错是为了让你在本地/部署时第一时间发现没配环境变量
-  throw new Error(
-    "缺少 Supabase 环境变量：请在 admin 项目里配置 NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  )
-}
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY
 
 export const supabase = createClient(url, anonKey)
 
