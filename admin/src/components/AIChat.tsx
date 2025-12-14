@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { X, Send, Bot, User } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
-const GEMINI_API_KEY = "AIzaSyCz2zZ9-cBWUfKBaU-xtxP5rX0m3wXJtbE"
+const GEMINI_API_KEY = "your_api_key"
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
 // 可用的模型列表
