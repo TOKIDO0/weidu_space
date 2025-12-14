@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
+import { LogOut } from "lucide-react"
 
 export function Topbar() {
   const router = useRouter()
@@ -20,24 +21,25 @@ export function Topbar() {
   }
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-white/10 bg-neutral-950 px-6 py-4 text-neutral-200">
-      <div className="text-sm text-neutral-400">
-        <span className="text-white">后台</span> / 数据管理
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+      <div className="text-sm text-gray-600">
+        <span className="text-gray-900 font-medium">后台</span>
+        <span className="mx-2">/</span>
+        <span>数据管理</span>
       </div>
-      <div className="flex items-center gap-3">
-        {email ? (
-          <div className="hidden text-xs text-neutral-400 md:block">{email}</div>
-        ) : null}
+      <div className="flex items-center gap-4">
+        {email && (
+          <div className="hidden text-sm text-gray-600 md:block">{email}</div>
+        )}
         <button
           type="button"
           onClick={onLogout}
-          className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs text-neutral-200 transition hover:bg-white/10"
+          className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
         >
-          退出登录
+          <LogOut className="w-4 h-4" />
+          <span>退出登录</span>
         </button>
       </div>
     </header>
   )
 }
-
-

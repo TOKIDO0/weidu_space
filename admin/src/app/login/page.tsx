@@ -1,86 +1,276 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [name, setName] = useState("")
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>("")
+  const [agreeTerms, setAgreeTerms] = useState(false)
+
+  // 检查是否已登录
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.replace("/projects")
+      }
+    })
+  }, [router])
 
   async function onLogin(e: React.FormEvent) {
     e.preventDefault()
     setError("")
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) {
-      setError(error.message)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+        return
+      }
+      if (data.session) {
+        // 等待一下确保 session 已设置
+        await new Promise(resolve => setTimeout(resolve, 100))
+        router.push("/projects")
+        router.refresh()
+      }
+    } catch (err: any) {
+      setError(err.message || "登录失败")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function onSignUp(e: React.FormEvent) {
+    e.preventDefault()
+    setError("")
+    
+    if (!agreeTerms) {
+      setError("请同意服务条款和隐私政策")
       return
     }
-    router.replace("/projects")
+
+    if (password.length < 8) {
+      setError("密码至少需要8个字符")
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+          },
+        },
+      })
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+        return
+      }
+      // After signup, automatically sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        setError("注册成功，但自动登录失败，请手动登录")
+        setIsSignUp(false)
+        setLoading(false)
+        return
+      }
+      await new Promise(resolve => setTimeout(resolve, 100))
+      router.push("/projects")
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message || "注册失败")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 flex items-center justify-center px-6">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
-        <div className="text-xs tracking-[0.35em] text-orange-500">
-          WEIDU ADMIN
-        </div>
-        <h1 className="mt-3 text-2xl font-semibold text-white">登录后台</h1>
-        <p className="mt-2 text-sm text-neutral-400">
-          使用 Supabase Auth 的邮箱/密码登录。
-        </p>
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex">
+      {/* Left Side - Login/Signup Form */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <h1 className="text-3xl font-bold text-center mb-2">立即开始</h1>
+          <p className="text-gray-400 text-center mb-8">
+            输入您的凭据以访问您的账户
+          </p>
 
-        <form className="mt-8 space-y-4" onSubmit={onLogin}>
-          <div>
-            <label className="block text-xs text-neutral-400 mb-2">邮箱</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              required
-              className="w-full rounded-2xl border border-white/10 bg-neutral-950 px-4 py-3 text-sm outline-none focus:border-orange-500"
-              placeholder="admin@weidu.com"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-neutral-400 mb-2">密码</label>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              required
-              className="w-full rounded-2xl border border-white/10 bg-neutral-950 px-4 py-3 text-sm outline-none focus:border-orange-500"
-              placeholder="••••••••"
-            />
+          {/* Social Login Buttons */}
+          <div className="space-y-3 mb-6">
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm font-medium hover:bg-white/10 transition-colors"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              使用 Google 登录
+            </button>
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm font-medium hover:bg-white/10 transition-colors"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-1.44-1.56-.62-2.3-1.23-2.3-2.37 0-1.24 1.01-2.4 2.38-2.4.52 0 .9.09 1.28.18.38.09.78.18 1.23.18.5 0 .9-.09 1.25-.18.35-.09.73-.18 1.25-.18 1.37 0 2.38 1.16 2.38 2.4 0 1.14-.74 1.75-2.3 2.37-.5.2-1 .39-1.5.58-.5.19-1 .38-1.5.58zm-2.5-18.28c.5 0 1.05.2 1.5.5.45.3.75.7.75 1.2 0 .5-.3.9-.75 1.2-.45.3-1 .5-1.5.5s-1.05-.2-1.5-.5c-.45-.3-.75-.7-.75-1.2 0-.5.3-.9.75-1.2.45-.3 1-.5 1.5-.5z"/>
+              </svg>
+              使用 Apple 登录
+            </button>
           </div>
 
-          {error ? (
-            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {error}
+          {/* Separator */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
             </div>
-          ) : null}
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-[#0a0a0a] px-2 text-gray-400">或</span>
+            </div>
+          </div>
 
-          <button
-            disabled={loading}
-            className="w-full rounded-2xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:opacity-60"
-            type="submit"
-          >
-            {loading ? "登录中..." : "登录"}
-          </button>
-        </form>
+          {/* Form */}
+          <form onSubmit={isSignUp ? onSignUp : onLogin} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  type="text"
+                  required={isSignUp}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-white/20 transition-colors"
+                  placeholder="全名"
+                />
+              </div>
+            )}
+            <div>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-white/20 transition-colors"
+                placeholder="输入您的邮箱"
+              />
+            </div>
+            <div className="relative">
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type={showPassword ? "text" : "password"}
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 pr-10 text-sm text-white placeholder-gray-500 outline-none focus:border-white/20 transition-colors"
+                placeholder={isSignUp ? "至少8个字符" : "输入您的密码"}
+                minLength={isSignUp ? 8 : undefined}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
 
-        <div className="mt-6 text-xs text-neutral-500 leading-relaxed">
-          第一次使用：去 <a className="text-orange-300 hover:text-orange-200" href="/setup">/setup</a>{" "}
-          创建第一个管理员账号（无需进 Supabase 控制台）。
+            {isSignUp && (
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-purple-600 focus:ring-purple-500"
+                />
+                <label htmlFor="terms" className="text-xs text-gray-400">
+                  我同意服务条款和隐私政策
+                </label>
+              </div>
+            )}
+
+            {error && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
+
+            <button
+              disabled={loading}
+              type="submit"
+              className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-sm font-medium text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (isSignUp ? "注册中..." : "登录中...") : isSignUp ? "注册" : "登录"}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp)
+                setError("")
+              }}
+              className="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              {isSignUp ? "已有账户？" : "没有账户？"}
+              <span className="text-white font-medium ml-1">
+                {isSignUp ? "登录" : "注册"}
+              </span>
+            </button>
+          </div>
+
+          <div className="mt-8 text-center text-xs text-gray-500">
+            2025 HADONAY, 保留所有权利
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Dashboard Preview (Placeholder) */}
+      <div className="hidden lg:flex flex-1 bg-gray-50 items-center justify-center p-8">
+        <div className="w-full max-w-4xl">
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                最简单的交易日志管理方式
+              </h2>
+              <p className="text-gray-600">
+                跟踪您的交易，分析表现，改进您的策略
+              </p>
+            </div>
+            <div className="text-center text-gray-400 text-sm">
+              维度空间后台管理系统
+            </div>
+          </div>
         </div>
       </div>
     </div>
   )
 }
-
-

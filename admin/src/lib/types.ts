@@ -10,6 +10,7 @@ export type ProjectRow = {
   cover_url: string | null
   images: string[] | null
   published: boolean
+  pinned: boolean
   sort_order: number
   created_at: string
   updated_at: string
@@ -40,5 +41,6 @@ export type LeadRow = {
   created_at: string
   updated_at: string
 }
+
 
 

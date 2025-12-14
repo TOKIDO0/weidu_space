@@ -25,6 +25,7 @@ create table if not exists public.projects (
   cover_url text,
   images text[],
   published boolean not null default true,
+  pinned boolean not null default false,
   sort_order int not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -92,6 +93,7 @@ drop policy if exists "reviews_insert_public" on public.reviews;
 drop policy if exists "reviews_admin_all" on public.reviews;
 drop policy if exists "leads_insert_public" on public.leads;
 drop policy if exists "leads_admin_all" on public.leads;
+drop policy if exists "leads_select_admin" on public.leads;
 
 -- projects：任何人只能看已发布；登录管理员可增删改查
 create policy "projects_select_published"
@@ -100,8 +102,8 @@ using (published = true);
 
 create policy "projects_admin_all"
 on public.projects for all
-using (auth.role() = 'authenticated')
-with check (auth.role() = 'authenticated');
+using (auth.uid() is not null)
+with check (auth.uid() is not null);
 
 -- reviews：任何人只能看已审核通过；任何人可提交（默认 approved=false）；管理员可管理全部
 create policy "reviews_select_approved"
@@ -114,17 +116,19 @@ with check (true);
 
 create policy "reviews_admin_all"
 on public.reviews for all
-using (auth.role() = 'authenticated')
-with check (auth.role() = 'authenticated');
+using (auth.uid() is not null)
+with check (auth.uid() is not null);
 
 -- leads：任何人可提交；只有管理员可查看/更新/删除
 create policy "leads_insert_public"
 on public.leads for insert
 with check (true);
 
+create policy "leads_select_admin"
+on public.leads for select
+using (auth.uid() is not null);
+
 create policy "leads_admin_all"
 on public.leads for all
-using (auth.role() = 'authenticated')
-with check (auth.role() = 'authenticated');
-
-
+using (auth.uid() is not null)
+with check (auth.uid() is not null);

@@ -17,6 +17,7 @@ type ProjectDraft = {
   cover_url: string
   images_text: string
   published: boolean
+  pinned: boolean
   sort_order: number
 }
 
@@ -31,6 +32,7 @@ const emptyDraft = (): ProjectDraft => ({
   cover_url: "",
   images_text: "",
   published: true,
+  pinned: false,
   sort_order: 0,
 })
 
@@ -57,6 +59,7 @@ export default function ProjectsPage() {
     const { data, error } = await supabase
       .from("projects")
       .select("*")
+      .order("pinned", { ascending: false })
       .order("sort_order", { ascending: false })
       .order("created_at", { ascending: false })
     setLoading(false)
@@ -84,6 +87,7 @@ export default function ProjectsPage() {
       cover_url: r.cover_url ?? "",
       images_text: (r.images ?? []).join("\n"),
       published: Boolean(r.published),
+      pinned: Boolean(r.pinned),
       sort_order: Number(r.sort_order ?? 0),
     })
   }
@@ -106,6 +110,7 @@ export default function ProjectsPage() {
       cover_url: draft.cover_url.trim() || null,
       images: toImages(draft.images_text),
       published: draft.published,
+      pinned: draft.pinned,
       sort_order: Number.isFinite(draft.sort_order) ? draft.sort_order : 0,
     }
 
@@ -150,6 +155,18 @@ export default function ProjectsPage() {
     await load()
   }
 
+  async function togglePin(r: ProjectRow) {
+    const { error } = await supabase
+      .from("projects")
+      .update({ pinned: !r.pinned })
+      .eq("id", r.id)
+    if (error) {
+      alert(error.message)
+      return
+    }
+    await load()
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card
@@ -164,37 +181,42 @@ export default function ProjectsPage() {
         }
       >
         {error ? (
-          <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         ) : null}
 
         {loading ? (
-          <div className="text-sm text-neutral-400">加载中...</div>
+          <div className="text-sm text-gray-500">加载中...</div>
         ) : rows.length ? (
           <div className="space-y-3">
             {rows.map((r) => (
               <div
                 key={r.id}
-                className="rounded-2xl border border-white/10 bg-neutral-950/40 px-4 py-4"
+                className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="truncate text-sm font-semibold text-white">
+                      <div className="truncate text-sm font-semibold text-gray-900">
                         {r.title}
                       </div>
+                      {r.pinned ? (
+                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[11px] text-orange-700 font-medium">
+                          置顶
+                        </span>
+                      ) : null}
                       {r.published ? (
-                        <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-200">
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] text-green-700 font-medium">
                           已发布
                         </span>
                       ) : (
-                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-neutral-300">
+                        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] text-gray-600 font-medium">
                           未发布
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 text-xs text-neutral-500">
+                    <div className="mt-1 text-xs text-gray-500">
                       {r.category ?? "-"} · {r.location ?? "-"} · sort:
                       {r.sort_order ?? 0}
                     </div>
@@ -202,6 +224,9 @@ export default function ProjectsPage() {
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
                     <Button variant="ghost" onClick={() => editRow(r)}>
                       编辑
+                    </Button>
+                    <Button variant="ghost" onClick={() => togglePin(r)}>
+                      {r.pinned ? "取消置顶" : "置顶"}
                     </Button>
                     <Button variant="ghost" onClick={() => togglePublish(r)}>
                       {r.published ? "下架" : "上架"}
@@ -215,7 +240,7 @@ export default function ProjectsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-sm text-neutral-400">暂无项目</div>
+          <div className="text-sm text-gray-500">暂无项目</div>
         )}
       </Card>
 
@@ -231,7 +256,7 @@ export default function ProjectsPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-neutral-400 mb-2">
+            <label className="block text-xs text-gray-600 mb-2 font-medium">
               标题（必填）
             </label>
             <Input
@@ -243,19 +268,23 @@ export default function ProjectsPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">
+              <label className="block text-xs text-gray-600 mb-2 font-medium">
                 分类
               </label>
-              <Input
+              <select
                 value={draft.category}
                 onChange={(e) =>
                   setDraft({ ...draft, category: e.target.value })
                 }
-                placeholder="住宅设计 / 商业空间 ..."
-              />
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value="">请选择分类</option>
+                <option value="住宅设计">住宅设计</option>
+                <option value="商业设计">商业设计</option>
+              </select>
             </div>
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">
+              <label className="block text-xs text-gray-600 mb-2 font-medium">
                 地点
               </label>
               <Input
@@ -270,7 +299,7 @@ export default function ProjectsPage() {
 
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">
+              <label className="block text-xs text-gray-600 mb-2 font-medium">
                 工期
               </label>
               <Input
@@ -282,7 +311,7 @@ export default function ProjectsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">
+              <label className="block text-xs text-gray-600 mb-2 font-medium">
                 面积
               </label>
               <Input
@@ -292,7 +321,7 @@ export default function ProjectsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">
+              <label className="block text-xs text-gray-600 mb-2 font-medium">
                 造价
               </label>
               <Input
@@ -304,7 +333,7 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-2">
+            <label className="block text-xs text-gray-600 mb-2 font-medium">
               封面图 URL
             </label>
             <Input
@@ -317,7 +346,7 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-2">
+            <label className="block text-xs text-gray-600 mb-2 font-medium">
               项目图片（每行一个 URL）
             </label>
             <Textarea
@@ -331,7 +360,7 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-2">
+            <label className="block text-xs text-gray-600 mb-2 font-medium">
               描述
             </label>
             <Textarea
@@ -346,7 +375,7 @@ export default function ProjectsPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">
+              <label className="block text-xs text-gray-600 mb-2 font-medium">
                 排序（越大越靠前）
               </label>
               <Input
@@ -361,14 +390,25 @@ export default function ProjectsPage() {
               />
             </div>
             <div className="flex items-end gap-3">
-              <label className="flex items-center gap-2 text-sm text-neutral-300">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={draft.pinned}
+                  onChange={(e) =>
+                    setDraft({ ...draft, pinned: e.target.checked })
+                  }
+                  className="h-4 w-4 rounded border-gray-300 bg-white text-purple-600 focus:ring-purple-500"
+                />
+                置顶
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
                   checked={draft.published}
                   onChange={(e) =>
                     setDraft({ ...draft, published: e.target.checked })
                   }
-                  className="h-4 w-4 rounded border-white/20 bg-neutral-950 accent-orange-500"
+                  className="h-4 w-4 rounded border-gray-300 bg-white text-purple-600 focus:ring-purple-500"
                 />
                 立即发布
               </label>

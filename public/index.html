@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Outfit:wght@200;300;400;600&family=Syncopate:wght@400;700&display=swap');
@@ -350,7 +351,7 @@ body {
     <!-- Navbar -->
     <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-neutral-950/70 backdrop-blur-xl">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            <a href="#" class="flex items-center">
+            <a href="#" class="flex items-center -ml-4">
                 <img src="https://dl2.img.timecdn.cn/2025/12/10/LOGO.png" alt="WeiDU LOGO" class="h-8 w-auto">
             </a>
             <div class="hidden md:flex items-center space-x-8 text-xs font-['Syncopate'] uppercase tracking-widest text-neutral-400">
@@ -469,32 +470,7 @@ body {
 
             <div class="marquee-wrapper">
                 <div class="marquee-track" id="reviewTrack">
-                    <!-- Cards injected here -->
-                    <div class="review-card water-glass-card" style="width: 350px;">
-                        <div class="flex gap-1 mb-6 text-sm text-[#ff4d00]"><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon></div>
-                        <p class="text-gray-300 italic mb-8 font-light">"从图纸到实景，几乎是 1:1 的呈现。团队非常专业。"</p>
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-gray-700 rounded-full overflow-hidden"><img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/917d6f93-fb36-439a-8c48-884b67b35381_1600w.jpg" class="w-full h-full object-cover"></div>
-                            <div><h4 class="text-white font-medium text-sm">Lin. Z</h4><p class="text-[10px] text-gray-500 font-['Syncopate']">NEO-TOKYO PENTHOUSE</p></div>
-                        </div>
-                    </div>
-                    <!-- More cards for demo -->
-                    <div class="review-card water-glass-card" style="width: 350px;">
-                        <div class="flex gap-1 mb-6 text-sm text-[#ff4d00]"><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon></div>
-                        <p class="text-gray-300 italic mb-8 font-light">"完全没有市面上那种拼凑感，细节处理得非常好。"</p>
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-gray-700 rounded-full overflow-hidden"><img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/4734259a-bad7-422f-981e-ce01e79184f2_1600w.jpg" class="w-full h-full object-cover"></div>
-                            <div><h4 class="text-white font-medium text-sm">Sarah W.</h4><p class="text-[10px] text-gray-500 font-['Syncopate']">ART APARTMENT</p></div>
-                        </div>
-                    </div>
-                     <div class="review-card water-glass-card" style="width: 350px;">
-                        <div class="flex gap-1 mb-6 text-sm text-[#ff4d00]"><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon><iconify-icon icon="solar:star-bold"></iconify-icon></div>
-                        <p class="text-gray-300 italic mb-8 font-light">"极简风格的完美诠释，每一条线都恰到好处。"</p>
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-gray-700 rounded-full overflow-hidden"><img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/5bab247f-35d9-400d-a82b-fd87cfe913d2_1600w.webp" class="w-full h-full object-cover"></div>
-                            <div><h4 class="text-white font-medium text-sm">David K.</h4><p class="text-[10px] text-gray-500 font-['Syncopate']">MINIMALIST</p></div>
-                        </div>
-                    </div>
+                    <!-- Cards will be injected here by JavaScript -->
                 </div>
             </div>
 
@@ -675,8 +651,8 @@ body {
                 <button onclick="closeReviewModal()" class="text-neutral-500 hover:text-white transition-colors"><iconify-icon icon="solar:close-circle-linear" width="28"></iconify-icon></button>
             </div>
             <form class="space-y-4">
-                <input type="text" class="review-input" placeholder="您的称呼">
-                <input type="text" class="review-input" placeholder="项目名称 (选填)">
+                <input type="text" id="reviewName" class="review-input" placeholder="您的称呼">
+                <input type="text" id="reviewProject" class="review-input" placeholder="项目名称 (选填)">
                 <div class="flex gap-2 py-2 review-stars" id="reviewStars">
                     <span class="text-xs uppercase text-neutral-500 tracking-widest mr-2 pt-1">评分</span>
                     <iconify-icon icon="solar:star-bold" class="review-star" data-star="1"></iconify-icon>
@@ -685,7 +661,7 @@ body {
                     <iconify-icon icon="solar:star-bold" class="review-star" data-star="4"></iconify-icon>
                     <iconify-icon icon="solar:star-bold" class="review-star" data-star="5"></iconify-icon>
                 </div>
-                <textarea class="review-input h-32 resize-none" placeholder="分享您的装修体验..."></textarea>
+                <textarea id="reviewContent" class="review-input h-32 resize-none" placeholder="分享您的装修体验..."></textarea>
                 <button type="button" class="liquid-glass-btn w-full mt-4 justify-center" onclick="submitReview()">
                     提交评价
                 </button>
@@ -790,31 +766,80 @@ body {
         }, { threshold: 0.15 });
         document.querySelectorAll('.reveal-blur').forEach(el => revealObserver.observe(el));
 
-        // --- Portfolio Data ---
-        const projects = [
-            { id: 1, title: "静谧·私宅", category: "住宅设计", location: "上海", duration: "8 个月", area: "240 m²", cost: "¥ 850,000", desc: "在这个项目中，我们试图寻找喧嚣都市中的宁静锚点。通过大面积的留白与天然木质的结合，营造出一种能够让时间慢下来的居住氛围。", images: ["https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1200", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1200"] },
-            { id: 2, title: "光之艺廊", category: "商业空间", location: "北京", duration: "4 个月", area: "180 m²", cost: "¥ 620,000", desc: "光线是这个空间的唯一主角。我们利用百叶窗和漫反射材料，让光线在一天中随着太阳的角度变化而流动，形成天然的艺术装置。", images: ["https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200", "https://images.unsplash.com/photo-1594498653385-d5175c532be2?q=80&w=1200"] },
-            { id: 3, title: "黑曜石公寓", category: "大平层", location: "深圳", duration: "6 个月", area: "120 m²", cost: "¥ 550,000", desc: "专为单身精英打造的暗调空间。使用黑色岩板、皮革与深色胡桃木，展现出克制而深邃的男性气质。", images: ["https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?q=80&w=1200", "https://images.unsplash.com/photo-1517581177697-a533188a6472?q=80&w=1200"] },
-            { id: 4, title: "山涧别墅", category: "别墅设计", location: "杭州", duration: "12 个月", area: "600 m²", cost: "¥ 2,800,000", desc: "建筑生长于自然之中。窗户开得极大，旨在模糊室内外的界限，让山林的风与景色成为家里最昂贵的装饰。", images: ["https://images.unsplash.com/photo-1507089947368-19c1da9775ae?q=80&w=1200", "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200"] }
-        ];
+        // --- Portfolio Data (从数据库加载) ---
+        async function loadProjects() {
+            const client = initSupabase();
+            if (!client) {
+                console.error('Supabase 未初始化');
+                return;
+            }
 
-        const grid = document.getElementById('portfolioGrid');
-        const displayProjects = [...projects, ...projects];
-        displayProjects.forEach((p, idx) => {
-            const spanClass = (idx === 0 || idx === 3 || idx === 8) ? 'span-8' : 'span-4';
-            const card = document.createElement('div');
-            card.className = `project-card ${spanClass}`;
-            card.onclick = () => openPfModal(p);
-            card.innerHTML = `
-                <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/4734259a-bad7-422f-981e-ce01e79184f2_1600w.jpg" alt="${p.title}">
-                <div class="project-info">
-                    <span class="text-[#ff4d00] text-xs font-['Syncopate'] mb-1 block">NO. 0${(idx % 4)+1}</span>
-                    <h3 class="text-2xl font-semibold text-white">${p.title}</h3>
-                    <p class="text-white/60 text-sm mt-1">${p.location} / ${p.area}</p>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
+            try {
+                const { data, error } = await client
+                    .from('projects')
+                    .select('*')
+                    .eq('published', true)
+                    .order('pinned', { ascending: false })
+                    .order('sort_order', { ascending: false })
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('加载项目失败:', error);
+                    return;
+                }
+
+                const grid = document.getElementById('portfolioGrid');
+                if (!grid) return;
+
+                // 清空现有内容
+                grid.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<div class="col-span-12 text-center text-gray-500 py-12">暂无作品展示</div>';
+                    return;
+                }
+
+                // 渲染项目卡片
+                data.forEach((p, idx) => {
+                    const spanClass = (idx === 0 || idx % 5 === 0 || idx % 8 === 0) ? 'span-8' : 'span-4';
+                    const card = document.createElement('div');
+                    card.className = `project-card ${spanClass}`;
+                    card.onclick = () => openPfModal({
+                        id: p.id,
+                        title: p.title,
+                        category: p.category || '',
+                        location: p.location || '',
+                        duration: p.duration || '',
+                        area: p.area || '',
+                        cost: p.cost || '',
+                        desc: p.description || '',
+                        images: p.images || []
+                    });
+                    
+                    const coverImg = p.cover_url || (p.images && p.images.length > 0 ? p.images[0] : 'https://via.placeholder.com/800x600?text=No+Image');
+                    card.innerHTML = `
+                        <img src="${coverImg}" alt="${p.title || ''}" onerror="this.src='https://via.placeholder.com/800x600?text=No+Image'">
+                        <div class="project-info">
+                            <span class="text-[#ff4d00] text-xs font-['Syncopate'] mb-1 block">${p.category || '项目'}</span>
+                            <h3 class="text-2xl font-semibold text-white">${p.title || ''}</h3>
+                            <p class="text-white/60 text-sm mt-1">${p.location || ''}${p.area ? ' / ' + p.area : ''}</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                console.error('加载项目错误:', err);
+            }
+        }
+
+        // 页面加载时获取项目数据
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(loadProjects, 500); // 等待 Supabase 库加载
+            });
+        } else {
+            setTimeout(loadProjects, 500);
+        }
 
         // --- Portfolio Modal Logic with 3D Info Box ---
         const modal = document.getElementById('pfModal');
@@ -881,9 +906,88 @@ body {
             reviewContent.classList.remove('scale-100');
         }
 
-        // Marquee Duplicate
-        const reviewTrack = document.getElementById('reviewTrack');
-        reviewTrack.innerHTML += reviewTrack.innerHTML;
+        // --- Load Reviews from Database ---
+        async function loadReviews() {
+            const client = initSupabase();
+            if (!client) {
+                console.error('Supabase 未初始化');
+                return;
+            }
+
+            try {
+                const { data, error } = await client
+                    .from('reviews')
+                    .select('*')
+                    .eq('approved', true)
+                    .order('pinned', { ascending: false })
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
+                if (error) {
+                    console.error('加载评价失败:', error);
+                    return;
+                }
+
+                const reviewTrack = document.getElementById('reviewTrack');
+                if (!reviewTrack) return;
+
+                // 清空现有内容
+                reviewTrack.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    reviewTrack.innerHTML = '<div class="review-card water-glass-card" style="width: 350px;"><p class="text-gray-400 text-center py-8">暂无评价</p></div>';
+                    // 复制一次用于无缝滚动
+                    reviewTrack.innerHTML += reviewTrack.innerHTML;
+                    return;
+                }
+
+                // 渲染评价卡片
+                data.forEach((r) => {
+                    const card = document.createElement('div');
+                    card.className = 'review-card water-glass-card';
+                    card.style.width = '350px';
+
+                    // 生成星星
+                    const stars = Array.from({ length: 5 }, (_, i) => {
+                        const filled = r.rating && i < r.rating;
+                        return `<iconify-icon icon="solar:star-bold" class="${filled ? 'text-[#ff4d00]' : 'text-gray-600'}"></iconify-icon>`;
+                    }).join('');
+
+                    const avatarUrl = r.avatar_url || 'https://via.placeholder.com/40?text=' + (r.name ? r.name.charAt(0) : '?');
+                    const name = r.name || '匿名';
+                    const projectName = r.project_name || '';
+
+                    card.innerHTML = `
+                        <div class="flex gap-1 mb-6 text-sm">${stars}</div>
+                        <p class="text-gray-300 italic mb-8 font-light">"${r.content || ''}"</p>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-gray-700 rounded-full overflow-hidden">
+                                <img src="${avatarUrl}" alt="${name}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/40?text=${encodeURIComponent(name.charAt(0))}'">
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium text-sm">${name}</h4>
+                                ${projectName ? `<p class="text-[10px] text-gray-500 font-['Syncopate']">${projectName}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    reviewTrack.appendChild(card);
+                });
+
+                // 复制内容用于无缝滚动
+                reviewTrack.innerHTML += reviewTrack.innerHTML;
+            } catch (err) {
+                console.error('加载评价错误:', err);
+            }
+        }
+
+        // 页面加载时获取评价数据
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(loadReviews, 500);
+            });
+        } else {
+            setTimeout(loadReviews, 500);
+        }
 
         // --- Baidu Map Initialization ---
         function initBaiduMap() {
@@ -1003,33 +1107,69 @@ body {
             }
         }
 
-        function handleFormSubmit() {
-            const name = document.getElementById('clientName').value;
-            const phone = document.getElementById('clientPhone').value;
-            const message = document.getElementById('clientMessage').value;
+        // 初始化 Supabase 客户端（延迟初始化，确保库已加载）
+        let supabaseClient = null;
+        function initSupabase() {
+            if (!supabaseClient && window.supabase) {
+                const SUPABASE_URL = 'https://aitxgwfqtcrxxcglwmrq.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdHhnd2ZxdGNyeHhjZ2x3bXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NDc1NTQsImV4cCI6MjA4MTIyMzU1NH0.OLDft-LmrRZEGEUEzJ9srevbnI68vV9jWf4Ym05lkAw';
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+            return supabaseClient;
+        }
+
+        async function handleFormSubmit() {
+            // 确保 Supabase 已初始化
+            const client = initSupabase();
+            if (!client) {
+                showToast('系统初始化中，请稍后重试');
+                return;
+            }
+
+            const name = document.getElementById('clientName').value.trim();
+            const phone = document.getElementById('clientPhone').value.trim();
+            const message = document.getElementById('clientMessage').value.trim();
             const appointmentTime = contactType === 'appointment' ? document.getElementById('appointmentDateTime').value : null;
 
-            // 这里可以添加发送数据到后端的逻辑
-            console.log({
-                name,
-                phone,
-                message,
-                contactType,
-                appointmentTime
-            });
-
-            if (contactType === 'appointment') {
-                showToast('我们会在您预约的时间联系您哦！');
-            } else {
-                showToast('我们会尽快联系您哦！');
+            if (!name || !phone || !message) {
+                showToast('请填写完整信息');
+                return;
             }
-            
-            // 重置表单
-            document.getElementById('clientName').value = '';
-            document.getElementById('clientPhone').value = '';
-            document.getElementById('clientMessage').value = '';
-            if (appointmentPicker) {
-                appointmentPicker.clear();
+
+            try {
+                const { data, error } = await client
+                    .from('leads')
+                    .insert({
+                        name: name,
+                        phone: phone,
+                        message: message,
+                        contact_type: contactType,
+                        appointment_time: appointmentTime ? new Date(appointmentTime).toISOString() : null,
+                        status: 'new'
+                    });
+
+                if (error) {
+                    console.error('提交失败:', error);
+                    showToast('提交失败，请稍后重试');
+                    return;
+                }
+
+                if (contactType === 'appointment') {
+                    showToast('我们会在您预约的时间联系您哦！');
+                } else {
+                    showToast('我们会尽快联系您哦！');
+                }
+                
+                // 重置表单
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientPhone').value = '';
+                document.getElementById('clientMessage').value = '';
+                if (appointmentPicker) {
+                    appointmentPicker.clear();
+                }
+            } catch (err) {
+                console.error('提交错误:', err);
+                showToast('提交失败，请稍后重试');
             }
         }
 
@@ -1067,12 +1207,64 @@ body {
             });
         }
 
-        function submitReview() {
-            showToast('感谢您的评价，这条评价很快就会出现在这里哦！');
-            // 关闭弹窗 + 重置评分
-            closeReviewModal();
-            selectedReviewRating = 0;
-            applyReviewStars(0);
+        async function submitReview() {
+            const client = initSupabase();
+            if (!client) {
+                showToast('系统初始化中，请稍后重试');
+                return;
+            }
+
+            const nameInput = document.getElementById('reviewName');
+            const projectInput = document.getElementById('reviewProject');
+            const contentInput = document.getElementById('reviewContent');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const projectName = projectInput ? projectInput.value.trim() : '';
+            const content = contentInput ? contentInput.value.trim() : '';
+
+            if (!content) {
+                showToast('请填写评价内容');
+                return;
+            }
+
+            if (selectedReviewRating === 0) {
+                showToast('请选择评分');
+                return;
+            }
+
+            try {
+                const { error } = await client
+                    .from('reviews')
+                    .insert({
+                        name: name || null,
+                        project_name: projectName || null,
+                        rating: selectedReviewRating,
+                        content: content,
+                        avatar_url: null,
+                        approved: false // 默认待审核
+                    });
+
+                if (error) {
+                    console.error('提交评价失败:', error);
+                    showToast('提交失败，请稍后重试');
+                    return;
+                }
+
+                showToast('感谢您的评价，审核通过后会显示在这里！');
+                
+                // 关闭弹窗 + 重置表单
+                closeReviewModal();
+                setTimeout(() => {
+                    if (nameInput) nameInput.value = '';
+                    if (projectInput) projectInput.value = '';
+                    if (contentInput) contentInput.value = '';
+                    selectedReviewRating = 0;
+                    applyReviewStars(0);
+                }, 300);
+            } catch (err) {
+                console.error('提交评价错误:', err);
+                showToast('提交失败，请稍后重试');
+            }
         }
 
         initReviewStars();
