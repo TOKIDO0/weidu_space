@@ -54,3 +54,4 @@ WITH CHECK (auth.uid() IS NOT NULL);
 
 执行上述 SQL 后，后台应该能正常查看所有评价（包括待审核的）。
 
+

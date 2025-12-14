@@ -31,3 +31,4 @@ on public.leads for all
 using (auth.uid() is not null)
 with check (auth.uid() is not null);
 
+

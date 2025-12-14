@@ -337,6 +337,53 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
+/* --- Project Reference Box (类似 Cursor 引用框) --- */
+.project-reference-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 77, 0, 0.15);
+    border: 1px solid rgba(255, 77, 0, 0.4);
+    border-left: 3px solid var(--brand-orange);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 4px 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    position: relative;
+    user-select: none;
+    cursor: default;
+}
+.project-reference-box .ref-content {
+    flex: 1;
+    min-width: 0;
+}
+.project-reference-box .ref-label {
+    font-weight: 600;
+    color: var(--brand-orange);
+    margin-right: 6px;
+}
+.project-reference-box .ref-close {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.project-reference-box .ref-close:hover {
+    background: rgba(255, 77, 0, 0.3);
+    color: rgba(255, 255, 255, 1);
+}
+.project-reference-box .ref-id {
+    font-family: 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.8);
+}
+
 </style>
 </head>
 
@@ -587,7 +634,12 @@ body {
                             </div>
                         </div>
 
-                        <div><label class="block text-xs uppercase tracking-wider text-neutral-500 mb-2 pl-4">您的需求</label><textarea id="clientMessage" class="w-full bg-neutral-950 border border-neutral-800 rounded-3xl p-6 text-white focus:outline-none focus:border-orange-500 transition-colors placeholder-neutral-700 resize-none h-32" placeholder="简单描述您的装修需求..." required></textarea></div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-neutral-500 mb-2 pl-4">您的需求</label>
+                            <div class="relative">
+                                <textarea id="clientMessage" class="w-full bg-neutral-950 border border-neutral-800 rounded-3xl p-6 text-white focus:outline-none focus:border-orange-500 transition-colors placeholder-neutral-700 resize-none h-32" placeholder="简单描述您的装修需求..." required></textarea>
+                            </div>
+                        </div>
                         <button type="submit" class="w-full h-14 bg-white text-black font-medium rounded-full hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center liquid-glass-btn" style="background: rgb(51, 51, 51); background-image: linear-gradient(90deg, rgba(255, 255, 255, 1) 44%, rgba(0, 0, 0, 1) 83%); background-clip: text; -webkit-background-clip: text; color: transparent; letter-spacing: 4px;">发送需求 <iconify-icon icon="solar:plain-3-linear" width="18"></iconify-icon></button>
                     </form>
                 </div>
@@ -626,6 +678,7 @@ body {
             <div class="pf-layer-info" id="pfInfoBox">
                 <button class="pf-close-float" onclick="closePfModal()"><iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon></button>
                 <div class="pf-title-group pf-stagger-item" style="transition-delay: 0.1s">
+                    <div class="text-xs text-gray-400 mb-2 font-['Syncopate'] tracking-wider" id="pfProjectId" style="display: none;">项目ID: <span id="pfProjectIdValue"></span></div>
                     <span id="pfCategory">RESIDENTIAL</span>
                     <h2 id="pfTitle">Project Name</h2>
                 </div>
@@ -637,7 +690,7 @@ body {
                     <div class="pf-hud-item"><label>地点</label><span id="pfLoc">City</span></div>
                 </div>
                 <div style="margin-top: auto;" class="pf-stagger-item">
-                    <button class="pf-action-btn">启动项目咨询</button>
+                    <button class="pf-action-btn" onclick="startProjectConsultation()">启动项目咨询</button>
                 </div>
             </div>
         </div>
@@ -846,7 +899,10 @@ body {
         const pfInfoBox = document.getElementById('pfInfoBox');
         let currentProjectImages = [], currentImgIndex = 0;
 
+        let currentProjectId = null;
+
         function openPfModal(data) {
+            currentProjectId = data.id;
             document.getElementById('pfCategory').innerText = data.category;
             document.getElementById('pfTitle').innerText = data.title;
             document.getElementById('pfDesc').innerText = data.desc;
@@ -854,6 +910,14 @@ body {
             document.getElementById('pfArea').innerText = data.area;
             document.getElementById('pfCost').innerText = data.cost;
             document.getElementById('pfDuration').innerText = data.duration;
+            
+            // 显示项目ID
+            if (data.id) {
+                document.getElementById('pfProjectIdValue').innerText = data.id;
+                document.getElementById('pfProjectId').style.display = 'block';
+            } else {
+                document.getElementById('pfProjectId').style.display = 'none';
+            }
 
             currentProjectImages = data.images; currentImgIndex = 0;
             const track = document.getElementById('pfTrack');
@@ -888,6 +952,83 @@ body {
         function changeSlide(direction) {
             currentImgIndex = (currentImgIndex + direction + currentProjectImages.length) % currentProjectImages.length;
             document.getElementById('pfTrack').style.transform = `translateY(-${currentImgIndex * 100}%)`;
+        }
+
+        function startProjectConsultation() {
+            if (!currentProjectId) return;
+            
+            // 获取当前项目信息
+            const projectTitle = document.getElementById('pfTitle').innerText;
+            const projectCategory = document.getElementById('pfCategory').innerText;
+            
+            // 关闭模态框
+            closePfModal();
+            
+            // 等待动画完成后再滚动
+            setTimeout(() => {
+                // 滚动到联系我们板块
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // 等待滚动完成后再填充表单
+                    setTimeout(() => {
+                        const messageInput = document.getElementById('clientMessage');
+                        if (messageInput) {
+                            // 创建引用框的 HTML
+                            const refBoxId = 'project-ref-' + Date.now();
+                            const refBoxHtml = `
+                                <div class="project-reference-box" data-ref-id="${refBoxId}" data-project-id="${currentProjectId}">
+                                    <div class="ref-content">
+                                        <span class="ref-label">项目ID:</span>
+                                        <span class="ref-id">${currentProjectId}</span>
+                                    </div>
+                                    <div class="ref-close" onclick="removeProjectReference('${refBoxId}')">
+                                        <iconify-icon icon="solar:close-circle-bold" width="14"></iconify-icon>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // 将引用框插入到 textarea 的父容器中
+                            const messageContainer = messageInput.parentElement; // div.relative
+                            const refBoxWrapper = document.createElement('div');
+                            refBoxWrapper.className = 'project-ref-wrapper mb-2';
+                            refBoxWrapper.innerHTML = refBoxHtml;
+                            
+                            // 如果已有引用框，先移除
+                            const existingRef = messageContainer.querySelector('.project-ref-wrapper');
+                            if (existingRef) {
+                                existingRef.remove();
+                            }
+                            
+                            // 插入引用框到 textarea 之前
+                            messageContainer.insertBefore(refBoxWrapper, messageInput);
+                            
+                            // 聚焦到输入框
+                            messageInput.focus();
+                        }
+                    }, 500);
+                }
+            }, 300);
+        }
+
+        function removeProjectReference(refBoxId) {
+            const refBox = document.querySelector(`[data-ref-id="${refBoxId}"]`);
+            if (refBox) {
+                const wrapper = refBox.closest('.project-ref-wrapper');
+                if (wrapper) {
+                    wrapper.remove();
+                }
+            }
+        }
+
+        // 从表单中提取项目ID（如果有引用框）
+        function getProjectIdFromForm() {
+            const refBox = document.querySelector('.project-reference-box');
+            if (refBox) {
+                return refBox.getAttribute('data-project-id');
+            }
+            return null;
         }
 
         // --- Review Modal Logic ---
@@ -1118,6 +1259,67 @@ body {
             return supabaseClient;
         }
 
+        // 发送 ntfy 推送通知
+        // 根据用户提供的示例：curl -d "Hi" ntfy.sh/weidu-studio-alerts
+        // -d 表示 POST data，所以使用 POST 方法
+        async function sendNtfyNotification(title, message, priority = 'default') {
+            try {
+                const NTFY_TOKEN = 'tk_7266bxclhxy1pmwfh1rmh0tqeaf4p';
+                const NTFY_TOPIC = 'weidu-studio-alerts';
+                
+                // 构建完整的消息内容（包含标题和内容）
+                const fullMessage = title ? `${title}\n\n${message}` : message;
+                
+                // 先尝试不使用token的方式（公开主题，类似 curl -d）
+                let response = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+                    method: 'POST',
+                    headers: {
+                        'Title': title || '通知',
+                        'Priority': priority,
+                        'Tags': 'bell,information_source'
+                    },
+                    body: fullMessage
+                });
+                
+                // 如果失败，尝试使用token认证
+                if (!response.ok) {
+                    console.log('公开主题推送失败，尝试使用token认证...');
+                    const errorText = await response.text();
+                    console.log('第一次尝试错误:', response.status, errorText);
+                    
+                    // 使用token重试
+                    response = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${NTFY_TOKEN}`,
+                            'Title': title || '通知',
+                            'Priority': priority,
+                            'Tags': 'bell,information_source'
+                        },
+                        body: fullMessage
+                    });
+                }
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('推送通知失败:', response.status, errorText);
+                    console.error('响应详情:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        error: errorText,
+                        url: `https://ntfy.sh/${NTFY_TOPIC}`
+                    });
+                } else {
+                    console.log('推送通知成功');
+                    const responseText = await response.text();
+                    console.log('推送响应:', responseText);
+                }
+            } catch (err) {
+                console.error('推送通知失败:', err);
+                // 静默失败，不影响主流程
+            }
+        }
+
         async function handleFormSubmit() {
             // 确保 Supabase 已初始化
             const client = initSupabase();
@@ -1128,8 +1330,17 @@ body {
 
             const name = document.getElementById('clientName').value.trim();
             const phone = document.getElementById('clientPhone').value.trim();
-            const message = document.getElementById('clientMessage').value.trim();
+            let message = document.getElementById('clientMessage').value.trim();
             const appointmentTime = contactType === 'appointment' ? document.getElementById('appointmentDateTime').value : null;
+            const projectId = getProjectIdFromForm();
+
+            // 如果有项目ID引用框，在消息前添加项目ID信息
+            if (projectId) {
+                const projectIdPrefix = `客户想要了解的项目：${projectId}\n\n`;
+                if (!message.startsWith(projectIdPrefix)) {
+                    message = projectIdPrefix + message;
+                }
+            }
 
             if (!name || !phone || !message) {
                 showToast('请填写完整信息');
@@ -1154,6 +1365,14 @@ body {
                     return;
                 }
 
+                // 发送推送通知
+                const contactTypeText = contactType === 'appointment' ? '预约咨询' : '立即联系';
+                const appointmentText = appointmentTime ? `预约时间: ${appointmentTime}` : '立即联系';
+                const projectText = projectId ? `\n项目ID: ${projectId}` : '';
+                const notificationMessage = `新客户需求\n\n姓名: ${name}\n电话: ${phone}\n联系方式: ${appointmentText}${projectText}\n\n需求内容:\n${message}`;
+                
+                await sendNtfyNotification('新客户需求', notificationMessage, 'high');
+
                 if (contactType === 'appointment') {
                     showToast('我们会在您预约的时间联系您哦！');
                 } else {
@@ -1164,6 +1383,10 @@ body {
                 document.getElementById('clientName').value = '';
                 document.getElementById('clientPhone').value = '';
                 document.getElementById('clientMessage').value = '';
+                const refWrapper = document.querySelector('.project-ref-wrapper');
+                if (refWrapper) {
+                    refWrapper.remove();
+                }
                 if (appointmentPicker) {
                     appointmentPicker.clear();
                 }
@@ -1249,6 +1472,14 @@ body {
                     showToast('提交失败，请稍后重试');
                     return;
                 }
+
+                // 发送推送通知
+                const starsText = '⭐'.repeat(selectedReviewRating) + '☆'.repeat(5 - selectedReviewRating);
+                const nameText = name || '匿名用户';
+                const projectText = projectName ? `\n项目: ${projectName}` : '';
+                const notificationMessage = `新客户评价 ${starsText}\n\n评价人: ${nameText}${projectText}\n\n评价内容:\n${content}`;
+                
+                await sendNtfyNotification('新客户评价', notificationMessage, 'default');
 
                 showToast('感谢您的评价，审核通过后会显示在这里！');
                 

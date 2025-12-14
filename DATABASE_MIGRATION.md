@@ -78,3 +78,4 @@ ADD COLUMN IF NOT EXISTS pinned boolean NOT NULL DEFAULT false;
 3. 前台页面需要 Supabase 客户端库已加载（已在 HTML 中包含）
 4. 所有数据操作都会实时同步到数据库
 
+

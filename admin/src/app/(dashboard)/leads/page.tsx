@@ -77,7 +77,7 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))' }}>
       <Card
         title="客户需求列表"
         right={
@@ -95,34 +95,42 @@ export default function LeadsPage() {
         ) : null}
 
         {loading ? (
-          <div className="text-sm text-gray-500">加载中...</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">加载中...</div>
         ) : rows.length ? (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
             {rows.map((r) => (
               <div
                 key={r.id}
-                className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 hover:bg-gray-100 transition-colors"
+                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="truncate text-sm font-semibold text-gray-900">
+                      <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">
                         {r.name}
                       </div>
-                      <span className="text-xs text-gray-500">{r.phone}</span>
-                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] text-gray-600 font-medium">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{r.phone}</span>
+                      <span className="rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-[11px] text-gray-600 dark:text-gray-400 font-medium">
                         {r.contact_type === "appointment"
                           ? "预约时间"
                           : "立即联系"}
                       </span>
-                      <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[11px] text-orange-700 font-medium">
-                        {r.status}
+                      <span className={`
+                        rounded-full px-2 py-0.5 text-[11px] font-semibold
+                        ${r.status === "new" 
+                          ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700" 
+                          : r.status === "contacted"
+                          ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700"
+                          : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700"
+                        }
+                      `}>
+                        {r.status === "new" ? "待处理" : r.status === "contacted" ? "已联系" : "已完成"}
                       </span>
                     </div>
-                    <div className="mt-2 text-xs text-gray-600 whitespace-pre-wrap">
+                    <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                       {r.message}
                     </div>
-                    <div className="mt-2 text-xs text-gray-500">
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                       创建：{fmt(r.created_at)}；预约：{fmt(r.appointment_time)}
                     </div>
                   </div>
@@ -151,7 +159,7 @@ export default function LeadsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-sm text-gray-500">暂无客户需求</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">暂无客户需求</div>
         )}
       </Card>
 
@@ -166,20 +174,20 @@ export default function LeadsPage() {
         }
       >
         {!editing ? (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             在左侧选择一条需求点击"处理"。
           </div>
         ) : (
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                   客户
                 </label>
                 <Input value={editing.name} readOnly />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                   电话
                 </label>
                 <Input value={editing.phone} readOnly />
@@ -188,7 +196,7 @@ export default function LeadsPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                   联系方式
                 </label>
                 <Input
@@ -201,7 +209,7 @@ export default function LeadsPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                   预约时间
                 </label>
                 <Input value={fmt(editing.appointment_time)} readOnly />
@@ -209,13 +217,13 @@ export default function LeadsPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">需求</label>
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2">需求</label>
               <Textarea rows={6} value={editing.message} readOnly />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                   状态
                 </label>
                 <select
@@ -226,18 +234,18 @@ export default function LeadsPage() {
                       status: e.target.value as LeadRow["status"],
                     })
                   }
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white outline-none transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                 >
-                  <option value="new">new</option>
-                  <option value="contacted">contacted</option>
-                  <option value="done">done</option>
+                  <option value="new">待处理</option>
+                  <option value="contacted">已联系</option>
+                  <option value="done">已完成</option>
                 </select>
               </div>
               <div />
             </div>
 
             <div>
-              <label className="block text-xs text-neutral-400 mb-2">
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2">
                 备注（内部）
               </label>
               <Textarea

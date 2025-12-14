@@ -42,5 +42,18 @@ export type LeadRow = {
   updated_at: string
 }
 
+export type ScheduleRow = {
+  id: string
+  title: string
+  scheduled_date: string
+  scheduled_time: string | null
+  description: string | null
+  images: string[] | null
+  enable_notification: boolean
+  notification_sent: boolean
+  created_at: string
+  updated_at: string
+}
+
 
 

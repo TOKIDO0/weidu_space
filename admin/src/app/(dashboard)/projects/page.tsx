@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import type { ProjectRow } from "@/lib/types"
 import { Button, Card, Input, Textarea } from "@/components/ui"
+import { Search, X } from "lucide-react"
 
 type ProjectDraft = {
   id?: string
@@ -50,8 +51,22 @@ export default function ProjectsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string>("")
   const [draft, setDraft] = useState<ProjectDraft>(emptyDraft())
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const isEditing = useMemo(() => Boolean(draft.id), [draft.id])
+  
+  const filteredRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows
+    const query = searchQuery.toLowerCase().trim()
+    return rows.filter((r) => {
+      const id = r.id?.toLowerCase() || ""
+      const location = r.location?.toLowerCase() || ""
+      const category = r.category?.toLowerCase() || ""
+      const title = r.title?.toLowerCase() || ""
+      return id.includes(query) || location.includes(query) || category.includes(query) || title.includes(query)
+    })
+  }, [rows, searchQuery])
 
   async function load() {
     setError("")
@@ -168,70 +183,115 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-4 sm:gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
       <Card
         title="项目列表"
         right={
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={load} disabled={loading}>
-              刷新
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+            <Button 
+              variant="ghost" 
+              onClick={() => setSearchOpen(!searchOpen)}
+              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+            >
+              <Search className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">搜索</span>
             </Button>
-            <Button onClick={resetDraft}>新建</Button>
+            <Button variant="ghost" onClick={load} disabled={loading} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
+              <span className="hidden sm:inline">刷新</span>
+              <span className="sm:hidden">刷新</span>
+            </Button>
+            <Button onClick={resetDraft} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
+              <span className="hidden sm:inline">新建</span>
+              <span className="sm:hidden">新建</span>
+            </Button>
           </div>
         }
       >
+        {/* 搜索框 */}
+        <div 
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            searchOpen ? "max-h-20 opacity-100 mb-4" : "max-h-0 opacity-0 mb-0"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="搜索项目ID、地点、分类、标题..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                找到 {filteredRows.length} 个项目
+              </div>
+            )}
+          </div>
+        </div>
+
         {error ? (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
             {error}
           </div>
         ) : null}
 
         {loading ? (
-          <div className="text-sm text-gray-500">加载中...</div>
-        ) : rows.length ? (
+          <div className="text-sm text-gray-500 dark:text-gray-400">加载中...</div>
+        ) : filteredRows.length ? (
           <div className="space-y-3">
-            {rows.map((r) => (
+            {filteredRows.map((r) => (
               <div
                 key={r.id}
-                className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 hover:bg-gray-100 transition-colors"
+                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="truncate text-sm font-semibold text-gray-900">
+                      <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">
                         {r.title}
                       </div>
                       {r.pinned ? (
-                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[11px] text-orange-700 font-medium">
+                        <span className="rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-[11px] text-orange-700 dark:text-orange-400 font-medium">
                           置顶
                         </span>
                       ) : null}
                       {r.published ? (
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] text-green-700 font-medium">
+                        <span className="rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-[11px] text-green-700 dark:text-green-400 font-medium">
                           已发布
                         </span>
                       ) : (
-                        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] text-gray-600 font-medium">
+                        <span className="rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-[11px] text-gray-600 dark:text-gray-400 font-medium">
                           未发布
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       {r.category ?? "-"} · {r.location ?? "-"} · sort:
                       {r.sort_order ?? 0}
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    <Button variant="ghost" onClick={() => editRow(r)}>
+                  <div className="flex shrink-0 flex-wrap items-center gap-1 sm:gap-2">
+                    <Button variant="ghost" onClick={() => editRow(r)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
                       编辑
                     </Button>
-                    <Button variant="ghost" onClick={() => togglePin(r)}>
+                    <Button variant="ghost" onClick={() => togglePin(r)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
                       {r.pinned ? "取消置顶" : "置顶"}
                     </Button>
-                    <Button variant="ghost" onClick={() => togglePublish(r)}>
+                    <Button variant="ghost" onClick={() => togglePublish(r)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
                       {r.published ? "下架" : "上架"}
                     </Button>
-                    <Button variant="danger" onClick={() => remove(r.id)}>
+                    <Button variant="danger" onClick={() => remove(r.id)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
                       删除
                     </Button>
                   </div>
@@ -239,8 +299,10 @@ export default function ProjectsPage() {
               </div>
             ))}
           </div>
+        ) : searchQuery ? (
+          <div className="text-sm text-gray-500 dark:text-gray-400">未找到匹配的项目</div>
         ) : (
-          <div className="text-sm text-gray-500">暂无项目</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">暂无项目</div>
         )}
       </Card>
 
@@ -256,7 +318,7 @@ export default function ProjectsPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-gray-600 mb-2 font-medium">
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
               标题（必填）
             </label>
             <Input
@@ -268,7 +330,7 @@ export default function ProjectsPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-xs text-gray-600 mb-2 font-medium">
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                 分类
               </label>
               <select
@@ -276,7 +338,7 @@ export default function ProjectsPage() {
                 onChange={(e) =>
                   setDraft({ ...draft, category: e.target.value })
                 }
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white outline-none transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
               >
                 <option value="">请选择分类</option>
                 <option value="住宅设计">住宅设计</option>
@@ -284,7 +346,7 @@ export default function ProjectsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-2 font-medium">
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                 地点
               </label>
               <Input
@@ -299,7 +361,7 @@ export default function ProjectsPage() {
 
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-2 font-medium">
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                 工期
               </label>
               <Input
@@ -311,7 +373,7 @@ export default function ProjectsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-2 font-medium">
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                 面积
               </label>
               <Input
@@ -321,7 +383,7 @@ export default function ProjectsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-2 font-medium">
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                 造价
               </label>
               <Input
@@ -333,7 +395,7 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-600 mb-2 font-medium">
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
               封面图 URL
             </label>
             <Input
@@ -346,7 +408,7 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-600 mb-2 font-medium">
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
               项目图片（每行一个 URL）
             </label>
             <Textarea
@@ -360,7 +422,7 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-600 mb-2 font-medium">
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
               描述
             </label>
             <Textarea
@@ -375,7 +437,7 @@ export default function ProjectsPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-xs text-gray-600 mb-2 font-medium">
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
                 排序（越大越靠前）
               </label>
               <Input
@@ -390,25 +452,25 @@ export default function ProjectsPage() {
               />
             </div>
             <div className="flex items-end gap-3">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={draft.pinned}
                   onChange={(e) =>
                     setDraft({ ...draft, pinned: e.target.checked })
                   }
-                  className="h-4 w-4 rounded border-gray-300 bg-white text-purple-600 focus:ring-purple-500"
+                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-purple-600 focus:ring-purple-500"
                 />
                 置顶
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={draft.published}
                   onChange={(e) =>
                     setDraft({ ...draft, published: e.target.checked })
                   }
-                  className="h-4 w-4 rounded border-gray-300 bg-white text-purple-600 focus:ring-purple-500"
+                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-purple-600 focus:ring-purple-500"
                 />
                 立即发布
               </label>

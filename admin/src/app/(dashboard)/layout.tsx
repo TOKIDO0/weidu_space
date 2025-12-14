@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
 import { Sidebar } from "@/components/Sidebar"
 import { Topbar } from "@/components/Topbar"
+import { AIChat } from "@/components/AIChat"
+import { Menu } from "lucide-react"
 
 export default function DashboardLayout({
   children,
@@ -13,6 +15,8 @@ export default function DashboardLayout({
 }>) {
   const router = useRouter()
   const [ready, setReady] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const checkingRef = useRef(false)
 
   useEffect(() => {
@@ -77,18 +81,33 @@ export default function DashboardLayout({
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center">
-        <div className="text-sm text-gray-500">加载中...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white flex items-center justify-center">
+        <div className="text-sm text-gray-500 dark:text-gray-400">加载中...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 p-6">{children}</main>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white flex">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onChatOpen={() => setChatOpen(true)} />
+      <div className="flex min-w-0 flex-1 flex-col w-full lg:w-auto">
+        <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+          <div className="ml-3 text-sm font-medium text-gray-900 dark:text-white">维度空间</div>
+        </div>
+        <div className="lg:mt-0 mt-14">
+          <Topbar />
+        </div>
+        <main className="flex-1 p-4 sm:p-6 relative">
+          {children}
+          {/* AI 聊天组件 - 放在主内容区域 */}
+          <AIChat isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+        </main>
       </div>
     </div>
   )
