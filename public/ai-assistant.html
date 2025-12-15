@@ -259,8 +259,11 @@
     const SUPABASE_URL = 'https://aitxgwfqtcrxxcglwmrq.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdHhnd2ZxdGNyeHhjZ2x3bXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NDc1NTQsImV4cCI6MjA4MTIyMzU1NH0.OLDft-LmrRZEGEUEzJ9srevbnI68vV9jWf4Ym05lkAw'
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    // 使用 API 路由来保护 API Key（需要完整路径）
-    const GEMINI_API_URL = window.location.origin + '/api/chat'
+    // 使用 API 路由来保护 API Key
+    // 如果前台和后台在同一域名，使用相对路径；否则需要配置后台API的完整URL
+    const GEMINI_API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+      ? 'http://localhost:3000/api/chat'  // 本地开发
+      : window.location.origin + '/api/chat'  // 生产环境
 
     let messages = []
 
@@ -384,29 +387,27 @@ ${publicData.reviews.map(r =>
             const errorData = await response.json()
             errorMessage = errorData.error || errorMessage
           } catch (e) {
-            const errorText = await response.text()
-            errorMessage = errorText || errorMessage
+            // 如果无法解析错误响应，使用状态码
+            errorMessage = `API 请求失败: ${response.status} ${response.statusText}`
           }
           console.error('API 请求失败:', response.status, errorMessage)
           throw new Error(errorMessage)
         }
 
-        // 读取响应文本
-        const responseText = await response.text()
-        if (!responseText || responseText.trim() === '') {
-          throw new Error('AI 服务返回了空响应')
-        }
-
-        // 解析JSON
+        // 解析响应
         let data
         try {
+          const responseText = await response.text()
+          if (!responseText || responseText.trim() === '') {
+            throw new Error('AI 服务返回了空响应')
+          }
           data = JSON.parse(responseText)
         } catch (e) {
-          console.error('解析响应失败:', e, responseText)
+          console.error('解析响应失败:', e)
           throw new Error('AI 服务返回了无效的响应格式')
         }
         
-        if (!data.message) {
+        if (!data || !data.message) {
           throw new Error('AI 服务返回了无效的响应')
         }
         
