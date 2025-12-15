@@ -26,3 +26,4 @@ CREATE INDEX IF NOT EXISTS idx_schedules_date ON public.schedules(scheduled_date
 CREATE INDEX IF NOT EXISTS idx_schedules_notification ON public.schedules(enable_notification, notification_sent, scheduled_date) 
 WHERE enable_notification = true AND notification_sent = false;
 
+

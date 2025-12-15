@@ -130,9 +130,20 @@ export default function LeadsPage() {
                     <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                       {r.message}
                     </div>
-                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      创建：{fmt(r.created_at)}；预约：{fmt(r.appointment_time)}
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                      <div>创建：{fmt(r.created_at)}</div>
+                      {r.appointment_time && (
+                        <div>预约：{fmt(r.appointment_time)}</div>
+                      )}
                     </div>
+                    {r.note && (
+                      <div className="mt-2 p-2 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                        <div className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-1">备注（内部）</div>
+                        <div className="text-xs text-blue-600 dark:text-blue-500 whitespace-pre-wrap">
+                          {r.note}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
                     <Button variant="ghost" onClick={() => setEditing(r)}>

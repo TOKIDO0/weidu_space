@@ -40,3 +40,4 @@ POST /api/sync-knowledge-base
 
 AI助手会自动从知识库获取信息，无需额外配置。
 
+

@@ -529,9 +529,12 @@ export default function SchedulePage() {
           ) : (
             <div className="space-y-4">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                日期：{selectedDate.toLocaleDateString("zh-CN")}
+                日期：{selectedDate?.toLocaleDateString("zh-CN")}
               </div>
-              {calendarDays.find(d => d.date.getTime() === selectedDate.getTime())?.appointments.length > 0 && (
+              {selectedDate && (() => {
+                const dayData = calendarDays.find(d => d.date.getTime() === selectedDate.getTime())
+                return dayData && dayData.appointments && dayData.appointments.length > 0
+              })() && (
                 <div>
                   <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
                     客户预约：
@@ -541,24 +544,64 @@ export default function SchedulePage() {
                     ?.appointments.map((apt) => (
                       <div
                         key={apt.id}
-                        className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 mb-2"
+                        className="p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 mb-3 space-y-2"
                       >
-                        <div className="text-sm font-medium text-red-900 dark:text-red-400">
-                          {apt.name} - {apt.phone}
-                        </div>
-                        <div className="text-xs text-red-700 dark:text-red-400 mt-1">
-                          {apt.appointment_time
-                            ? new Date(apt.appointment_time).toLocaleString("zh-CN")
-                            : ""}
-                        </div>
-                        <div className="text-xs text-red-600 dark:text-red-500 mt-1 whitespace-pre-wrap">
-                          {apt.message}
+                        <div className="grid gap-2">
+                          <div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">客户姓名</div>
+                            <div className="text-sm font-semibold text-red-900 dark:text-red-400">
+                              {apt.name}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">联系电话</div>
+                            <div className="text-sm text-red-700 dark:text-red-400">
+                              {apt.phone}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">预约时间</div>
+                            <div className="text-sm text-red-700 dark:text-red-400">
+                              {apt.appointment_time
+                                ? new Date(apt.appointment_time).toLocaleString("zh-CN", {
+                                    year: "numeric",
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                  })
+                                : "未设置"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">需求内容</div>
+                            <div className="text-sm text-red-600 dark:text-red-500 whitespace-pre-wrap bg-white dark:bg-red-900/20 p-2 rounded border border-red-200 dark:border-red-800">
+                              {apt.message || "无"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">状态</div>
+                            <span className={`
+                              inline-block px-2 py-1 rounded text-xs font-semibold
+                              ${apt.status === "new" 
+                                ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700" 
+                                : apt.status === "contacted"
+                                ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700"
+                                : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700"
+                              }
+                            `}>
+                              {apt.status === "new" ? "待处理" : apt.status === "contacted" ? "已联系" : "已完成"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     ))}
                 </div>
               )}
-              {calendarDays.find(d => d.date.getTime() === selectedDate.getTime())?.schedules.length > 0 && (
+              {selectedDate && (() => {
+                const dayData = calendarDays.find(d => d.date.getTime() === selectedDate.getTime())
+                return dayData && dayData.schedules && dayData.schedules.length > 0
+              })() && (
                 <div>
                   <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
                     自定义日程：

@@ -1,10 +1,28 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import type { ProjectRow } from "@/lib/types"
-import { Button, Card, Input, Textarea } from "@/components/ui"
-import { Search, X } from "lucide-react"
+import { Button } from "@/components/ui"
+import { 
+  Search, 
+  X, 
+  Plus, 
+  LayoutGrid, 
+  List as ListIcon, 
+  Edit3, 
+  Trash2, 
+  ArrowUp,
+  MapPin,
+  Calendar,
+  Maximize2,
+  DollarSign,
+  Image as ImageIcon,
+  Save,
+  CheckCircle2,
+  Upload,
+  Trash
+} from "lucide-react"
 
 type ProjectDraft = {
   id?: string
@@ -45,14 +63,137 @@ function toImages(text: string) {
   return arr.length ? arr : null
 }
 
+// 图片管理组件
+function ImageManager({ images, onImagesChange }: { images: string[], onImagesChange: (images: string[]) => void }) {
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    handleFiles(files)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files)
+      handleFiles(files)
+    }
+  }
+
+  const handleFiles = async (files: File[]) => {
+    // 这里应该上传到 Supabase Storage，但为了简化，我们只支持 URL 输入
+    // 实际项目中应该实现文件上传功能
+    alert('图片上传功能需要配置 Supabase Storage。目前请使用图片 URL 方式添加图片。')
+  }
+
+  const addImageUrl = () => {
+    const url = prompt('请输入图片 URL:')
+    if (url && url.trim()) {
+      onImagesChange([...images, url.trim()])
+    }
+  }
+
+  const removeImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index)
+    onImagesChange(newImages)
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* 图片网格 */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          {images.map((url, index) => (
+            <div key={index} className="relative group">
+              <img 
+                src={url} 
+                alt={`项目图片 ${index + 1}`}
+                className="w-full h-32 object-cover rounded-lg border border-slate-200 dark:border-gray-600"
+                onError={(e) => {
+                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd" width="200" height="200"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E图片加载失败%3C/text%3E%3C/svg%3E'
+                }}
+              />
+              <button
+                onClick={() => removeImage(index)}
+                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 上传区域 */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        className={`
+          border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+          ${isDragging 
+            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' 
+            : 'border-slate-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-slate-50 dark:hover:bg-gray-700/50'
+          }
+        `}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+        <Upload className="w-8 h-8 mx-auto mb-2 text-slate-400 dark:text-gray-500" />
+        <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">
+          拖动图片到此处或点击选择
+        </p>
+        <p className="text-xs text-slate-500 dark:text-gray-500">
+          或 <button type="button" onClick={(e) => { e.stopPropagation(); addImageUrl(); }} className="text-indigo-600 dark:text-indigo-400 hover:underline">添加图片 URL</button>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+const Badge = ({ children, variant = 'default' }: { children: React.ReactNode, variant?: 'success' | 'warning' | 'default' | 'outline' }) => {
+  const styles = {
+    default: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
+    success: "bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
+    warning: "bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800",
+    outline: "border border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-400"
+  }
+  return (
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[variant]}`}>
+      {children}
+    </span>
+  )
+}
+
 export default function ProjectsPage() {
   const [rows, setRows] = useState<ProjectRow[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string>("")
   const [draft, setDraft] = useState<ProjectDraft>(emptyDraft())
-  const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const isEditing = useMemo(() => Boolean(draft.id), [draft.id])
   
@@ -105,13 +246,27 @@ export default function ProjectsPage() {
       pinned: Boolean(r.pinned),
       sort_order: Number(r.sort_order ?? 0),
     })
+    setIsDrawerOpen(true)
   }
 
   function resetDraft() {
     setDraft(emptyDraft())
+    const drawer = document.getElementById('project-drawer')
+    if (drawer) {
+      drawer.style.animation = 'slideOutToRight 0.3s ease-in'
+      setTimeout(() => setIsDrawerOpen(false), 300)
+    } else {
+      setIsDrawerOpen(false)
+    }
   }
 
-  async function save() {
+  function handleCreate() {
+    resetDraft()
+    setIsDrawerOpen(true)
+  }
+
+  async function save(e?: React.FormEvent) {
+    if (e) e.preventDefault()
     setSaving(true)
     setError("")
     const payload = {
@@ -183,312 +338,485 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="grid gap-4 sm:gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
-      <Card
-        title="项目列表"
-        right={
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-            <Button 
-              variant="ghost" 
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-            >
-              <Search className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">搜索</span>
-            </Button>
-            <Button variant="ghost" onClick={load} disabled={loading} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-              <span className="hidden sm:inline">刷新</span>
-              <span className="sm:hidden">刷新</span>
-            </Button>
-            <Button onClick={resetDraft} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-              <span className="hidden sm:inline">新建</span>
-              <span className="sm:hidden">新建</span>
-            </Button>
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 text-slate-800 dark:text-white font-sans">
+      
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-slate-200 dark:border-gray-800 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
+              <LayoutGrid className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">项目管理台</h1>
           </div>
-        }
-      >
-        {/* 搜索框 */}
-        <div 
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            searchOpen ? "max-h-20 opacity-100 mb-4" : "max-h-0 opacity-0 mb-0"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="搜索项目ID、地点、分类、标题..."
+
+          <div className="flex items-center gap-4">
+            <div className="relative group">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="搜索项目..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10"
+                className="pl-9 pr-4 py-2 bg-slate-100 dark:bg-gray-800 border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white dark:focus:bg-gray-700 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500"
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
             </div>
-            {searchQuery && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                找到 {filteredRows.length} 个项目
-              </div>
-            )}
+            
+            <div className="h-6 w-px bg-slate-200 dark:bg-gray-700 mx-2"></div>
+
+            <button 
+              onClick={handleCreate}
+              className="flex items-center gap-2 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white px-5 py-2 rounded-full text-sm font-medium transition-all shadow-lg shadow-slate-200 dark:shadow-indigo-900/50 active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span>新建项目</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        
+        {/* Toolbar */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-white">全部项目</h2>
+            <span className="bg-slate-200 dark:bg-gray-700 text-slate-600 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded-full">{rows.length}</span>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-slate-200 dark:border-gray-700 shadow-sm">
+            <button 
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300'}`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300'}`}
+            >
+              <ListIcon className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {error ? (
+        {error && (
           <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
             {error}
           </div>
-        ) : null}
+        )}
 
+        {/* Project Grid */}
         {loading ? (
-          <div className="text-sm text-gray-500 dark:text-gray-400">加载中...</div>
-        ) : filteredRows.length ? (
-          <div className="space-y-3">
-            {filteredRows.map((r) => (
-              <div
-                key={r.id}
-                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                        {r.title}
+          <div className="text-center text-slate-500 dark:text-gray-400 py-12">加载中...</div>
+        ) : (
+          <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+            {filteredRows.map((project) => {
+              const coverImage = project.cover_url || (project.images && project.images.length > 0 ? project.images[0] : null)
+              return (
+                <div 
+                  key={project.id} 
+                  className={`group bg-white dark:bg-gray-800 rounded-2xl border border-slate-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-gray-900/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden ${viewMode === 'list' ? 'flex items-center p-4 gap-6' : ''}`}
+                >
+                  {/* Image Section */}
+                  <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-32 rounded-xl flex-shrink-0' : 'aspect-[4/3]'}`}>
+                    {coverImage ? (
+                      <img 
+                        src={coverImage} 
+                        alt={project.title || "项目图片"} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://via.placeholder.com/800x600?text=No+Image"
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                        <ImageIcon className="w-12 h-12 text-slate-300 dark:text-gray-600" />
                       </div>
-                      {r.pinned ? (
-                        <span className="rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-[11px] text-orange-700 dark:text-orange-400 font-medium">
-                          置顶
-                        </span>
-                      ) : null}
-                      {r.published ? (
-                        <span className="rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-[11px] text-green-700 dark:text-green-400 font-medium">
-                          已发布
-                        </span>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    {/* Badges */}
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      {project.published ? (
+                        <Badge variant="success">已发布</Badge>
                       ) : (
-                        <span className="rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-[11px] text-gray-600 dark:text-gray-400 font-medium">
-                          未发布
+                        <Badge variant="warning">草稿</Badge>
+                      )}
+                      {project.pinned && (
+                        <span className="bg-indigo-600 text-white p-1 rounded-full shadow-lg">
+                          <ArrowUp className="w-3 h-3" />
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {r.category ?? "-"} · {r.location ?? "-"} · sort:
-                      {r.sort_order ?? 0}
+                  </div>
+
+                  {/* Content Section */}
+                  <div className={`flex-1 ${viewMode === 'grid' ? 'p-5' : ''}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1 uppercase tracking-wider">{project.category || "未分类"}</p>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white leading-tight mb-1">{project.title || "未命名项目"}</h3>
+                        <div className="flex items-center text-slate-500 dark:text-gray-400 text-xs gap-2">
+                          <MapPin className="w-3 h-3" />
+                          <span>{project.location || "未指定地点"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Specs Grid */}
+                    <div className="grid grid-cols-3 gap-2 py-4 my-2 border-t border-b border-slate-50 dark:border-gray-700">
+                      <div className="text-center px-2 border-r border-slate-50 dark:border-gray-700">
+                        <p className="text-[10px] text-slate-400 dark:text-gray-500 uppercase font-bold tracking-wider">工期</p>
+                        <p className="text-sm font-medium text-slate-700 dark:text-gray-300">{project.duration || "-"}</p>
+                      </div>
+                      <div className="text-center px-2 border-r border-slate-50 dark:border-gray-700">
+                        <p className="text-[10px] text-slate-400 dark:text-gray-500 uppercase font-bold tracking-wider">面积</p>
+                        <p className="text-sm font-medium text-slate-700 dark:text-gray-300">{project.area ? `${project.area}m²` : "-"}</p>
+                      </div>
+                      <div className="text-center px-2">
+                        <p className="text-[10px] text-slate-400 dark:text-gray-500 uppercase font-bold tracking-wider">造价</p>
+                        <p className="text-sm font-medium text-slate-700 dark:text-gray-300">{project.cost || "-"}</p>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-xs text-slate-400 dark:text-gray-500">
+                        更新于 {project.updated_at ? new Date(project.updated_at).toLocaleDateString("zh-CN") : "-"}
+                      </span>
+                      <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => editRow(project)}
+                          className="p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors" 
+                          title="编辑"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => remove(project.id)}
+                          className="p-2 hover:bg-rose-50 dark:hover:bg-rose-900/30 text-slate-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors" 
+                          title="删除"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-1 sm:gap-2">
-                    <Button variant="ghost" onClick={() => editRow(r)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-                      编辑
-                    </Button>
-                    <Button variant="ghost" onClick={() => togglePin(r)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-                      {r.pinned ? "取消置顶" : "置顶"}
-                    </Button>
-                    <Button variant="ghost" onClick={() => togglePublish(r)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-                      {r.published ? "下架" : "上架"}
-                    </Button>
-                    <Button variant="danger" onClick={() => remove(r.id)} className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-                      删除
-                    </Button>
+                </div>
+              )
+            })}
+            
+            {/* Add New Card */}
+            <button 
+              onClick={handleCreate}
+              className={`group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-gray-700 rounded-2xl hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20 transition-all cursor-pointer ${viewMode === 'list' ? 'h-32' : 'aspect-[4/5]'}`}
+            >
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-gray-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 text-slate-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 flex items-center justify-center mb-3 transition-colors">
+                <Plus className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-medium text-slate-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">新建项目</p>
+            </button>
+          </div>
+        )}
+      </main>
+
+      {/* Editor Drawer / Slide-over */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" 
+            onClick={() => {
+              const drawer = document.getElementById('project-drawer')
+              if (drawer) {
+                drawer.style.animation = 'slideOutToRight 0.3s ease-in'
+                setTimeout(() => setIsDrawerOpen(false), 300)
+              } else {
+                setIsDrawerOpen(false)
+              }
+            }}
+          />
+          
+          {/* Drawer Panel - 从右往左滑入动画 */}
+          <div 
+            id="project-drawer"
+            className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col" 
+            style={{ animation: 'slideInFromRight 0.3s ease-out' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-gray-700">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                  {isEditing ? '编辑项目' : '新建项目'}
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-gray-400">填写下方的详细信息以发布到前台</p>
+              </div>
+              <button 
+                onClick={() => {
+                  const drawer = document.getElementById('project-drawer')
+                  if (drawer) {
+                    drawer.style.animation = 'slideOutToRight 0.3s ease-in'
+                    setTimeout(() => setIsDrawerOpen(false), 300)
+                  } else {
+                    setIsDrawerOpen(false)
+                  }
+                }}
+                className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+                onClick={() => {
+                  const drawer = document.getElementById('project-drawer')
+                  if (drawer) {
+                    drawer.style.animation = 'slideOutToRight 0.3s ease-in'
+                    setTimeout(() => setIsDrawerOpen(false), 300)
+                  } else {
+                    setIsDrawerOpen(false)
+                  }
+                }}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <form id="project-form" onSubmit={save} className="space-y-8">
+                
+                {/* Section 1: Basic Info */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
+                    基本信息
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">项目标题 <span className="text-rose-500">*</span></label>
+                      <input 
+                        type="text" 
+                        required
+                        value={draft.title}
+                        onChange={e => setDraft({...draft, title: e.target.value})}
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-gray-500 text-slate-900 dark:text-white"
+                        placeholder="例如：静谧·私宅设计"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">分类</label>
+                        <select 
+                          value={draft.category}
+                          onChange={e => setDraft({...draft, category: e.target.value})}
+                          className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none text-slate-900 dark:text-white"
+                        >
+                          <option value="">请选择分类</option>
+                          <option value="住宅设计">住宅设计</option>
+                          <option value="商业办公">商业办公</option>
+                          <option value="展厅设计">展厅设计</option>
+                          <option value="景观规划">景观规划</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">地点</label>
+                        <div className="relative">
+                          <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
+                          <input 
+                            type="text" 
+                            value={draft.location}
+                            onChange={e => setDraft({...draft, location: e.target.value})}
+                            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-gray-500"
+                            placeholder="上海 / 北京..."
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : searchQuery ? (
-          <div className="text-sm text-gray-500 dark:text-gray-400">未找到匹配的项目</div>
-        ) : (
-          <div className="text-sm text-gray-500 dark:text-gray-400">暂无项目</div>
-        )}
-      </Card>
 
-      <Card
-        title={isEditing ? "编辑项目" : "新建项目"}
-        right={
-          isEditing ? (
-            <Button variant="ghost" onClick={resetDraft}>
-              取消编辑
-            </Button>
-          ) : null
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-              标题（必填）
-            </label>
-            <Input
-              value={draft.title}
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              placeholder="例如：静谧·私宅"
-            />
-          </div>
+                {/* Section 2: Specs */}
+                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-gray-700">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
+                    项目规格
+                  </h3>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 dark:text-gray-400 mb-1">工期</label>
+                      <div className="relative">
+                        <Calendar className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
+                        <input 
+                          type="text" 
+                          value={draft.duration}
+                          onChange={e => setDraft({...draft, duration: e.target.value})}
+                          className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-gray-700 border-none rounded-lg text-sm focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-gray-500"
+                          placeholder="8 个月"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 dark:text-gray-400 mb-1">面积 (m²)</label>
+                      <div className="relative">
+                        <Maximize2 className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
+                        <input 
+                          type="text" 
+                          value={draft.area}
+                          onChange={e => setDraft({...draft, area: e.target.value})}
+                          className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-gray-700 border-none rounded-lg text-sm focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-gray-500"
+                          placeholder="240"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 dark:text-gray-400 mb-1">造价 (RMB)</label>
+                      <div className="relative">
+                        <DollarSign className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
+                        <input 
+                          type="text" 
+                          value={draft.cost}
+                          onChange={e => setDraft({...draft, cost: e.target.value})}
+                          className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-gray-700 border-none rounded-lg text-sm focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-gray-500"
+                          placeholder="850,000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                分类
-              </label>
-              <select
-                value={draft.category}
-                onChange={(e) =>
-                  setDraft({ ...draft, category: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white outline-none transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                {/* Section 3: Media */}
+                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-gray-700">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
+                    媒体资源
+                  </h3>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">封面图 URL</label>
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1">
+                        <input 
+                          type="text" 
+                          value={draft.cover_url}
+                          onChange={e => setDraft({...draft, cover_url: e.target.value})}
+                          className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm font-mono text-slate-600 dark:text-gray-300 placeholder:text-slate-300 dark:placeholder:text-gray-500"
+                          placeholder="https://..."
+                        />
+                        <p className="text-xs text-slate-400 dark:text-gray-500 mt-1">推荐尺寸: 1600x1200, 支持 JPG/PNG</p>
+                      </div>
+                      <div className="w-24 h-16 bg-slate-100 dark:bg-gray-700 rounded-lg border border-slate-200 dark:border-gray-600 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        {draft.cover_url ? (
+                          <img src={draft.cover_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                        ) : (
+                          <ImageIcon className="w-6 h-6 text-slate-300 dark:text-gray-600" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">项目图片</label>
+                    <ImageManager 
+                      images={toImages(draft.images_text) || []}
+                      onImagesChange={(images) => {
+                        setDraft({...draft, images_text: images.join('\n')})
+                      }}
+                    />
+                  </div>
+
+                   <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">项目描述</label>
+                    <textarea 
+                      rows={4}
+                      value={draft.description}
+                      onChange={e => setDraft({...draft, description: e.target.value})}
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-gray-500"
+                      placeholder="输入项目的设计理念、背景故事等..."
+                    ></textarea>
+                  </div>
+                </div>
+
+                {/* Section 4: Settings */}
+                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-gray-700">
+                   <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
+                    发布设置
+                  </h3>
+                  
+                  <div className="flex items-center gap-8 bg-slate-50 dark:bg-gray-700/50 p-4 rounded-xl border border-slate-100 dark:border-gray-700">
+                     <label className="flex items-center gap-3 cursor-pointer">
+                      <div className={`w-10 h-6 rounded-full p-1 transition-colors duration-300 ${draft.published ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-gray-600'}`}>
+                        <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-300 ${draft.published ? 'translate-x-4' : ''}`}></div>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={draft.published || false}
+                        onChange={e => setDraft({...draft, published: e.target.checked})}
+                      />
+                      <span className="text-sm font-medium text-slate-700 dark:text-gray-300">立即发布</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${draft.pinned ? 'bg-indigo-600 border-indigo-600' : 'bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600'}`}>
+                        {draft.pinned && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={draft.pinned || false}
+                        onChange={e => setDraft({...draft, pinned: e.target.checked})}
+                      />
+                      <span className="text-sm font-medium text-slate-700 dark:text-gray-300">置顶项目</span>
+                    </label>
+
+                    <div className="flex-1 flex items-center justify-end gap-2">
+                        <span className="text-sm text-slate-500 dark:text-gray-400">排序权重:</span>
+                        <input 
+                          type="number" 
+                          value={draft.sort_order}
+                          onChange={e => setDraft({...draft, sort_order: parseInt(e.target.value) || 0})}
+                          className="w-16 px-2 py-1 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded text-center text-sm text-slate-900 dark:text-white"
+                        />
+                    </div>
+                  </div>
+                </div>
+
+              </form>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex justify-end gap-3">
+              <button 
+                type="button"
+                onClick={() => {
+                  const drawer = document.getElementById('project-drawer')
+                  if (drawer) {
+                    drawer.style.animation = 'slideOutToRight 0.3s ease-in'
+                    setTimeout(() => setIsDrawerOpen(false), 300)
+                  } else {
+                    setIsDrawerOpen(false)
+                  }
+                }}
+                className="px-6 py-2.5 rounded-lg border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
               >
-                <option value="">请选择分类</option>
-                <option value="住宅设计">住宅设计</option>
-                <option value="商业设计">商业设计</option>
-              </select>
+                取消
+              </button>
+              <button 
+                type="submit"
+                form="project-form"
+                onClick={save}
+                disabled={saving}
+                className="px-6 py-2.5 rounded-lg bg-slate-900 dark:bg-indigo-600 text-white font-medium hover:bg-slate-800 dark:hover:bg-indigo-700 transition-all shadow-lg shadow-slate-200 dark:shadow-indigo-900/50 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? "保存中..." : "保存项目"}
+              </button>
             </div>
-            <div>
-              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                地点
-              </label>
-              <Input
-                value={draft.location}
-                onChange={(e) =>
-                  setDraft({ ...draft, location: e.target.value })
-                }
-                placeholder="上海 / 北京 ..."
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                工期
-              </label>
-              <Input
-                value={draft.duration}
-                onChange={(e) =>
-                  setDraft({ ...draft, duration: e.target.value })
-                }
-                placeholder="8 个月"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                面积
-              </label>
-              <Input
-                value={draft.area}
-                onChange={(e) => setDraft({ ...draft, area: e.target.value })}
-                placeholder="240 m²"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                造价
-              </label>
-              <Input
-                value={draft.cost}
-                onChange={(e) => setDraft({ ...draft, cost: e.target.value })}
-                placeholder="¥ 850,000"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-              封面图 URL
-            </label>
-            <Input
-              value={draft.cover_url}
-              onChange={(e) =>
-                setDraft({ ...draft, cover_url: e.target.value })
-              }
-              placeholder="https://..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-              项目图片（每行一个 URL）
-            </label>
-            <Textarea
-              rows={5}
-              value={draft.images_text}
-              onChange={(e) =>
-                setDraft({ ...draft, images_text: e.target.value })
-              }
-              placeholder="https://...\nhttps://..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-              描述
-            </label>
-            <Textarea
-              rows={6}
-              value={draft.description}
-              onChange={(e) =>
-                setDraft({ ...draft, description: e.target.value })
-              }
-              placeholder="项目介绍..."
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                排序（越大越靠前）
-              </label>
-              <Input
-                type="number"
-                value={draft.sort_order}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    sort_order: Number(e.target.value || 0),
-                  })
-                }
-              />
-            </div>
-            <div className="flex items-end gap-3">
-              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                <input
-                  type="checkbox"
-                  checked={draft.pinned}
-                  onChange={(e) =>
-                    setDraft({ ...draft, pinned: e.target.checked })
-                  }
-                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-purple-600 focus:ring-purple-500"
-                />
-                置顶
-              </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                <input
-                  type="checkbox"
-                  checked={draft.published}
-                  onChange={(e) =>
-                    setDraft({ ...draft, published: e.target.checked })
-                  }
-                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-purple-600 focus:ring-purple-500"
-                />
-                立即发布
-              </label>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button onClick={save} disabled={saving}>
-              {saving ? "保存中..." : isEditing ? "保存修改" : "创建项目"}
-            </Button>
-            <Button variant="ghost" onClick={resetDraft} disabled={saving}>
-              清空
-            </Button>
+            
           </div>
         </div>
-      </Card>
+      )}
     </div>
   )
 }
-
-

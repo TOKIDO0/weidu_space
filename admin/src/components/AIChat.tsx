@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { X, Send, Bot, User } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
-const GEMINI_API_KEY = "your_api_key"
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+// API Key 现在通过服务器端 API 路由保护，不再在客户端使用
 
 // 可用的模型列表
 const AVAILABLE_MODELS = [
@@ -121,9 +120,9 @@ export function AIChat({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
       const contextData = await fetchDataForContext()
 
       // 构建系统提示
-      const systemPrompt = `你是一个智能助手，帮助管理维度空间设计工作室的后台系统。你可以回答关于公司、项目、客户需求、日程安排等问题。
+      const systemPrompt = `你是一个公司网站的智能助手，可以帮助用户回答各种问题。你可以回答关于维度空间设计工作室的后台系统、公司、项目、客户需求、日程安排等问题，也可以回答其他任何问题，包括但不限于技术问题、生活问题、学习问题等，并且你的回复格式要尽量干净，如果你需要给用户回复数据相关的内容，你可以使用markdown格式来让用户看起来更加清晰，除非特殊情况，否则不得使用*号出现在你的回复中，同时你的回答当中不能够出现情色、血腥、暴力、引导犯罪、影响中国政治稳定、违法乱纪、等任何违法违规的内容。
 
-当前系统数据：
+当前系统数据（如果用户询问相关问题时可以使用）：
 ${contextData ? `
 - 总项目数：${contextData.projectCount}
 - 待处理客户需求：${contextData.pendingLeads}
@@ -156,37 +155,33 @@ ${contextData.knowledgeBase.map((kb: any) =>
 ` : ""}
 ` : "无法获取数据"}
 
-请用中文回答，回答要简洁明了，有帮助性。当用户询问项目信息时，请提供项目的完整信息，包括标题、分类、地点等。`
+请用中文回答，回答要准确、有帮助性。无论用户问什么问题，都要尽力回答。如果问题与系统数据相关，可以使用上面的数据；如果问题与系统无关，请根据你的知识回答。`
 
-      const fullPrompt = `${systemPrompt}\n\n用户问题：${input}`
-
-      // 调用 Gemini API
-      const response = await fetch(
-        `${GEMINI_API_URL}/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: fullPrompt }],
-              },
-            ],
-          }),
-        }
-      )
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error?.message || "API 请求失败")
-      }
+      // 通过 API 路由调用，保护 API Key
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: input,
+          contextData: contextData,
+          model: selectedModel,
+        }),
+      })
 
       const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || "API 请求失败")
+      }
+      
+      if (!data.message) {
+        throw new Error("AI 服务返回了无效的响应")
+      }
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，我无法生成回复。",
+        content: data.message || "抱歉，我无法生成回复。",
         timestamp: new Date(),
       }
 
@@ -221,32 +216,32 @@ ${contextData.knowledgeBase.map((kb: any) =>
       />
       
       {/* 聊天窗口 */}
-      <div className="relative w-full max-w-2xl h-[80vh] max-h-[800px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl flex flex-col border border-gray-200 dark:border-gray-700 pointer-events-auto">
+      <div className="relative w-full max-w-2xl h-[80vh] max-h-[800px] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 pointer-events-auto">
         {/* 头部 */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI 助手</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">维度空间智能助手</p>
+              <h3 className="text-lg font-semibold text-gray-900">AI 助手</h3>
+              <p className="text-xs text-gray-500">维度空间智能助手</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
         {/* 模型选择 */}
-        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+        <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
           <select
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="w-full text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full text-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             {AVAILABLE_MODELS.map((model) => (
               <option key={model.id} value={model.id}>
@@ -263,10 +258,10 @@ ${contextData.knowledgeBase.map((kb: any) =>
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mb-4">
                 <Bot className="w-8 h-8 text-white" />
               </div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">
                 欢迎使用 AI 助手
               </h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+              <p className="text-sm text-gray-500 max-w-md">
                 我可以帮助您查询项目信息、客户预约、日程安排等。试试问我：
                 <br />
                 "我最近的一次客户预约是什么时候？"
@@ -291,7 +286,7 @@ ${contextData.knowledgeBase.map((kb: any) =>
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     message.role === "user"
                       ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      : "bg-gray-100 text-gray-900"
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -303,8 +298,8 @@ ${contextData.knowledgeBase.map((kb: any) =>
                   </p>
                 </div>
                 {message.role === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-gray-700" />
                   </div>
                 )}
               </div>
@@ -315,7 +310,7 @@ ${contextData.knowledgeBase.map((kb: any) =>
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
                 <Bot className="w-4 h-4 text-white" />
               </div>
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2">
+              <div className="bg-gray-100 rounded-lg px-4 py-2">
                 <div className="flex gap-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -328,7 +323,7 @@ ${contextData.knowledgeBase.map((kb: any) =>
         </div>
 
         {/* 输入框 */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-t border-gray-200">
           <div className="flex gap-2">
             <input
               ref={inputRef}
@@ -338,7 +333,7 @@ ${contextData.knowledgeBase.map((kb: any) =>
               onKeyPress={handleKeyPress}
               placeholder="输入您的问题..."
               disabled={loading}
-              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
             />
             <button
               onClick={handleSend}
@@ -353,4 +348,3 @@ ${contextData.knowledgeBase.map((kb: any) =>
     </div>
   )
 }
-

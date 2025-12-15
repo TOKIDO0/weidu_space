@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
+import { SliderCaptcha } from "@/components/SliderCaptcha"
 
 export default function SetupPage() {
   const router = useRouter()
@@ -11,10 +12,17 @@ export default function SetupPage() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string>("")
+  const [captchaVerified, setCaptchaVerified] = useState(false)
 
   async function onSetup(e: React.FormEvent) {
     e.preventDefault()
     setMsg("")
+    
+    if (!captchaVerified) {
+      setMsg("请先完成人机验证")
+      return
+    }
+    
     setLoading(true)
 
     // 1) 注册用户
@@ -86,6 +94,10 @@ export default function SetupPage() {
             />
           </div>
 
+          <div className="py-2">
+            <SliderCaptcha onVerify={setCaptchaVerified} />
+          </div>
+
           {msg ? (
             <div className="rounded-2xl border border-white/10 bg-neutral-950/50 px-4 py-3 text-sm text-neutral-200 whitespace-pre-wrap">
               {msg}
@@ -93,8 +105,8 @@ export default function SetupPage() {
           ) : null}
 
           <button
-            disabled={loading}
-            className="w-full rounded-2xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:opacity-60"
+            disabled={loading || !captchaVerified}
+            className="w-full rounded-2xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
             type="submit"
           >
             {loading ? "初始化中..." : "创建管理员并进入后台"}
@@ -111,6 +123,7 @@ export default function SetupPage() {
     </div>
   )
 }
+
 
 
 

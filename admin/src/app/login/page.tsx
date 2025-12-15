@@ -51,7 +51,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen" style={{ 
-      backgroundImage: "url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920&q=80')",
+      backgroundImage: "url('https://dl.img.timecdn.cn/2025/12/15/aurora.png')",
       backgroundSize: "cover",
       backgroundPosition: "right",
       overflow: "hidden"
@@ -74,7 +74,7 @@ export default function LoginPage() {
           textTransform: "uppercase",
           color: "#2E2B41",
           marginBottom: "20px"
-        }}>Login</h1>
+        }}>登录</h1>
         
         {error && (
           <p id="error-message" style={{
@@ -126,7 +126,7 @@ export default function LoginPage() {
                 setEmail(e.target.value)
                 setError("")
               }}
-              placeholder="Email"
+              placeholder="邮箱"
               required
               style={{
                 boxSizing: "border-box",
@@ -185,7 +185,7 @@ export default function LoginPage() {
                 setPassword(e.target.value)
                 setError("")
               }}
-              placeholder="Password"
+              placeholder="密码"
               required
               style={{
                 boxSizing: "border-box",
@@ -235,7 +235,7 @@ export default function LoginPage() {
               if (!loading) e.currentTarget.style.backgroundColor = "#8672FF"
             }}
           >
-            {loading ? "登录中..." : "Login"}
+            {loading ? "登录中..." : "登录"}
           </button>
         </form>
 

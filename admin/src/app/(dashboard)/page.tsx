@@ -14,6 +14,7 @@ import {
   ArrowUpRight
 } from "lucide-react"
 import Link from "next/link"
+import { CustomerAnalytics } from "@/components/CustomerAnalytics"
 
 export default function DashboardHome() {
   const [stats, setStats] = useState({
@@ -139,8 +140,8 @@ export default function DashboardHome() {
       setRecentActivities(activities.slice(0, 4))
 
       // 加载即将到来的事件（客户预约和日程）
-      const now = new Date()
-      const futureDate = new Date(now)
+      const currentTime = new Date()
+      const futureDate = new Date(currentTime)
       futureDate.setDate(now.getDate() + 30) // 未来30天
 
       // 加载未来预约
@@ -149,7 +150,7 @@ export default function DashboardHome() {
         .select("id, name, appointment_time, message")
         .eq("contact_type", "appointment")
         .not("appointment_time", "is", null)
-        .gte("appointment_time", now.toISOString())
+        .gte("appointment_time", currentTime.toISOString())
         .lte("appointment_time", futureDate.toISOString())
         .order("appointment_time", { ascending: true })
         .limit(4)
@@ -158,7 +159,7 @@ export default function DashboardHome() {
       const { data: upcomingSchedules } = await supabase
         .from("schedules")
         .select("id, title, scheduled_date, scheduled_time")
-        .gte("scheduled_date", now.toISOString().split('T')[0])
+        .gte("scheduled_date", currentTime.toISOString().split('T')[0])
         .lte("scheduled_date", futureDate.toISOString().split('T')[0])
         .order("scheduled_date", { ascending: true })
         .limit(4)
@@ -203,8 +204,8 @@ export default function DashboardHome() {
 
   function formatTime(dateString: string) {
     const date = new Date(dateString)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
+    const currentTime = new Date()
+    const diff = currentTime.getTime() - date.getTime()
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const days = Math.floor(hours / 24)
 
@@ -430,6 +431,9 @@ export default function DashboardHome() {
           </div>
         </div>
       </div>
+
+      {/* 客户画像分析 */}
+      <CustomerAnalytics />
     </div>
   )
 }

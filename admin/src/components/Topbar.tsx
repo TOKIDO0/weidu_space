@@ -21,20 +21,20 @@ export function Topbar() {
   }
 
   return (
-    <header className="h-14 sm:h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 sm:px-6">
-      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-        <span className="text-gray-900 dark:text-white font-medium">后台</span>
+    <header className="h-14 sm:h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6">
+      <div className="text-xs sm:text-sm text-gray-600">
+        <span className="text-gray-900 font-medium">后台</span>
         <span className="mx-1 sm:mx-2">/</span>
         <span className="hidden sm:inline">数据管理</span>
       </div>
       <div className="flex items-center gap-2 sm:gap-4">
         {email && (
-          <div className="hidden text-xs sm:text-sm text-gray-600 dark:text-gray-400 md:block truncate max-w-[120px] sm:max-w-none">{email}</div>
+          <div className="hidden text-xs sm:text-sm text-gray-600 md:block truncate max-w-[120px] sm:max-w-none">{email}</div>
         )}
         <button
           type="button"
           onClick={onLogout}
-          className="flex items-center gap-1 sm:gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-1 sm:gap-2 rounded-lg border border-gray-300 bg-white px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
           <span className="hidden sm:inline">退出登录</span>

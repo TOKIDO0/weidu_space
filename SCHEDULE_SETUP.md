@@ -92,3 +92,4 @@ WHERE enable_notification = true AND notification_sent = false;
 - 当日程日期到达且 `enable_notification` 为 true 时，会通过 ntfy 推送通知
 - 推送后自动标记 `notification_sent` 为 true，避免重复推送
 
+

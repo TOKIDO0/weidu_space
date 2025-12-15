@@ -55,5 +55,19 @@ export type ScheduleRow = {
   updated_at: string
 }
 
+export type ProjectProgressRow = {
+  id: string
+  project_id: string
+  customer_phone: string
+  stage: "design" | "construction" | "finishing" | "completed"
+  title: string
+  description: string | null
+  images: string[] | null
+  videos: string[] | null
+  progress_date: string
+  created_at: string
+  updated_at: string
+}
+
 
 
