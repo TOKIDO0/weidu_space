@@ -256,53 +256,76 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://aitxgwfqtcrxxcglwmrq.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdHhnd2ZxdGNyeHhjZ2x3bXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NDc1NTQsImV4cCI6MjA4MTIyMzU1NH0.OLDft-LmrRZEGEUEzJ9srevbnI68vV9jWf4Ym05lkAw'
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    // 使用 API 路由来保护 API Key
-    // 如果前台和后台在同一域名，使用相对路径；否则需要配置后台API的完整URL
-    const GEMINI_API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-      ? 'http://localhost:3000/api/chat'  // 本地开发
-      : window.location.origin + '/api/chat'  // 生产环境
-
-    let messages = []
-
-    // Reveal animation
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active')
-        }
-      })
-    }, { threshold: 0.15 })
-    document.querySelectorAll('.reveal-blur').forEach(el => revealObserver.observe(el))
-
-    async function fetchPublicData() {
-      try {
-        // 只获取公开信息，不包含敏感数据
-        const { data: projects } = await supabase
-          .from('projects')
-          .select('title, category, location, description')
-          .eq('published', true)
-          .limit(10)
-
-        const { data: reviews } = await supabase
-          .from('reviews')
-          .select('name, project_name, rating, content')
-          .eq('approved', true)
-          .limit(10)
-
-        return {
-          projects: projects || [],
-          reviews: reviews || []
-        }
-      } catch (error) {
-        console.error('获取数据失败:', error)
-        return { projects: [], reviews: [] }
+    // 等待Supabase CDN加载完成
+    (async function() {
+      // 等待supabase库加载
+      while (!window.supabase) {
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
-    }
 
-    async function sendMessage() {
+      const SUPABASE_URL = 'https://aitxgwfqtcrxxcglwmrq.supabase.co'
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdHhnd2ZxdGNyeHhjZ2x3bXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NDc1NTQsImV4cCI6MjA4MTIyMzU1NH0.OLDft-LmrRZEGEUEzJ9srevbnI68vV9jWf4Ym05lkAw'
+      
+      // 使用全局变量避免重复声明
+      window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      
+      // 配置API URL - 前台和后台可能不在同一域名，需要配置后台的完整URL
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      
+      if (isLocal) {
+        window.CHAT_API_URL = 'http://localhost:3000/api/chat'  // 本地开发
+      } else {
+        // 生产环境API URL配置
+        // 方案1: 如果前台和后台在同一域名，使用相对路径
+        window.CHAT_API_URL = window.location.origin + '/api/chat'
+        
+        // 方案2: 如果后台在子路径 /admin 下，取消下面注释
+        // window.CHAT_API_URL = window.location.origin + '/admin/api/chat'
+        
+        // 方案3: 如果后台在不同域名，取消下面注释并设置正确的后台API URL
+        // 例如：'https://your-admin-domain.vercel.app/api/chat'
+        // window.CHAT_API_URL = 'https://your-admin-domain.vercel.app/api/chat'
+      }
+
+      window.messages = []
+
+      // Reveal animation
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active')
+          }
+        })
+      }, { threshold: 0.15 })
+      document.querySelectorAll('.reveal-blur').forEach(el => revealObserver.observe(el))
+
+      async function fetchPublicData() {
+        try {
+          // 只获取公开信息，不包含敏感数据
+          const { data: projects } = await window.supabaseClient
+            .from('projects')
+            .select('title, category, location, description')
+            .eq('published', true)
+            .limit(10)
+
+          const { data: reviews } = await window.supabaseClient
+            .from('reviews')
+            .select('name, project_name, rating, content')
+            .eq('approved', true)
+            .limit(10)
+
+          return {
+            projects: projects || [],
+            reviews: reviews || []
+          }
+        } catch (error) {
+          console.error('获取数据失败:', error)
+          return { projects: [], reviews: [] }
+        }
+      }
+
+      // 将sendMessage函数暴露到全局作用域
+      window.sendMessage = async function() {
       const input = document.getElementById('chatInput')
       const message = input.value.trim()
       if (!message) return
@@ -340,7 +363,7 @@
         const publicData = await fetchPublicData()
 
         // 通过 API 路由调用智谱API（保护 API Key，流式响应）
-        const response = await fetch(GEMINI_API_URL, {
+        const response = await fetch(window.CHAT_API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -436,7 +459,8 @@
         sendBtn.textContent = '发送'
         input.focus()
       }
-    }
+      } // sendMessage函数结束
+    })() // 立即执行函数结束
   </script>
 </body>
 </html>
