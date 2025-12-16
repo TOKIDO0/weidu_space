@@ -3,38 +3,6 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install",
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/static",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.105911.xyz"
-        }
-      ]
-    },
-    {
-      "source": "/",
-      "destination": "/static",
-      "has": [
-        {
-          "type": "host",
-          "value": "105911.xyz"
-        }
-      ]
-    },
-    {
-      "source": "/:path*.html",
-      "destination": "/static/:path*.html",
-      "has": [
-        {
-          "type": "host",
-          "value": "(www\\.)?105911\\.xyz"
-        }
-      ]
-    }
-  ],
   "crons": [
     {
       "path": "/api/schedule-notifications",
