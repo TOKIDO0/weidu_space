@@ -3,20 +3,6 @@
   "outputDirectory": "admin/.next",
   "installCommand": "cd admin && npm install",
   "framework": null,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/(.*\\.html)",
-      "destination": "/$1"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ],
   "crons": [
     {
       "path": "/api/schedule-notifications",
