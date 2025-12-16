@@ -9,6 +9,9 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "next": "16.0.10"
   }
 }
 
