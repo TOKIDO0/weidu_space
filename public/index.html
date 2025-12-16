@@ -54,9 +54,10 @@ body {
     .portfolio-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
     .span-8, .span-4 { grid-column: span 1; height: 300px; }
 }
-.project-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s var(--ease-smooth); filter: grayscale(100%) contrast(1.1); }
+.project-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s var(--ease-smooth), filter 0.8s cubic-bezier(0.4, 0, 0.2, 1); filter: grayscale(100%) contrast(1.1); }
 .project-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); transform: translateY(20px); opacity: 0; transition: all 0.5s ease; }
-.project-card:hover { border-color: var(--brand-orange); }
+.project-card { transition: all 0.5s var(--ease-smooth), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.6s ease; }
+.project-card:hover { border-color: var(--brand-orange); transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 77, 0, 0.2); }
 .project-card:hover img { transform: scale(1.05); filter: grayscale(0%) contrast(1); }
 .project-card:hover .project-info { transform: translateY(0); opacity: 1; }
 
@@ -1286,10 +1287,17 @@ body {
 
         // 评价数据在initPageData中加载
 
-        // --- Baidu Map Initialization (Lazy Load) ---
+        // --- Baidu Map Initialization ---
         let mapInitialized = false;
         function initBaiduMap() {
-            if (mapInitialized || typeof BMap === 'undefined') return;
+            if (mapInitialized) return;
+            
+            if (typeof BMap === 'undefined') {
+                // 如果 BMap 还没加载，等待加载完成
+                setTimeout(initBaiduMap, 100);
+                return;
+            }
+            
             mapInitialized = true;
             
             const map = new BMap.Map("baiduMap");
@@ -1316,15 +1324,11 @@ body {
             map.addControl(new BMap.ScaleControl());
         }
         
-        // Lazy load map when contact section is visible
+        // 延迟加载地图，当联系板块可见时初始化
         const contactObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !mapInitialized) {
-                    if (typeof BMap !== 'undefined') {
-                        initBaiduMap();
-                    } else {
-                        window.addEventListener('load', initBaiduMap);
-                    }
+                    initBaiduMap();
                     contactObserver.disconnect();
                 }
             });
@@ -1333,6 +1337,20 @@ body {
         const contactSection = document.getElementById('contact');
         if (contactSection) {
             contactObserver.observe(contactSection);
+        }
+        
+        // 备用：如果页面加载完成时联系板块已经可见，直接初始化
+        if (document.readyState === 'complete') {
+            setTimeout(() => {
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    const rect = contactSection.getBoundingClientRect();
+                    const isVisible = rect.top < window.innerHeight + 200 && rect.bottom > -200;
+                    if (isVisible && !mapInitialized) {
+                        initBaiduMap();
+                    }
+                }
+            }, 500);
         }
 
         // --- Appointment Date/Time Picker ---
