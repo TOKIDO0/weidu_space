@@ -249,8 +249,8 @@ export default function SchedulePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">日程管理</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900">日程管理</h1>
+        <p className="text-sm text-gray-600 mt-1">
           管理和查看日程安排，客户预约会自动标记。
         </p>
       </div>
@@ -295,7 +295,7 @@ export default function SchedulePage() {
               {weekDays.map((day) => (
                 <div
                   key={day}
-                  className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2"
+                  className="text-center text-xs font-medium text-gray-500 py-2"
                 >
                   {day}
                 </div>
@@ -304,7 +304,7 @@ export default function SchedulePage() {
 
             {/* 日期网格 */}
             {loading ? (
-              <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+              <div className="text-sm text-gray-500 text-center py-8">
                 加载中...
               </div>
             ) : (
@@ -322,12 +322,12 @@ export default function SchedulePage() {
                       onClick={() => handleDateClick(day)}
                       className={`
                         aspect-square p-1 text-xs rounded-lg transition-all
-                        ${!day.isCurrentMonth ? "text-gray-300 dark:text-gray-600 opacity-30" : ""}
-                        ${isSelected ? "bg-gradient-to-br from-purple-500 to-blue-500 text-white font-bold ring-2 ring-purple-400 dark:ring-purple-300 shadow-lg scale-105" : ""}
-                        ${!isSelected && day.hasAppointment ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-semibold" : ""}
-                        ${!isSelected && day.hasSchedule && !day.hasAppointment ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold" : ""}
-                        ${!isSelected && !day.hasAppointment && !day.hasSchedule && day.isCurrentMonth ? "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white" : ""}
-                        ${!isSelected && day.isCurrentMonth ? "text-gray-900 dark:text-white" : ""}
+                        ${!day.isCurrentMonth ? "text-gray-300 opacity-30" : ""}
+                        ${isSelected ? "bg-gradient-to-br from-purple-500 to-blue-500 text-white font-bold ring-2 ring-purple-400 shadow-lg scale-105" : ""}
+                        ${!isSelected && day.hasAppointment ? "bg-red-100 text-red-700 font-semibold" : ""}
+                        ${!isSelected && day.hasSchedule && !day.hasAppointment ? "bg-blue-100 text-blue-700 font-semibold" : ""}
+                        ${!isSelected && !day.hasAppointment && !day.hasSchedule && day.isCurrentMonth ? "hover:bg-gray-100 text-gray-900" : ""}
+                        ${!isSelected && day.isCurrentMonth ? "text-gray-900" : ""}
                       `}
                     >
                       <div className="flex flex-col items-center justify-center h-full">
@@ -361,19 +361,19 @@ export default function SchedulePage() {
           }
         >
           {!selectedDate ? (
-            <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+            <div className="text-sm text-gray-500 text-center py-8">
               点击日历上的日期查看或创建日程
             </div>
           ) : editingSchedule ? (
             <div className="space-y-4">
               {error && (
-                <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 mb-2 font-medium">
                   标题（必填）
                 </label>
                 <Input
@@ -387,7 +387,7 @@ export default function SchedulePage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                  <label className="block text-xs text-gray-600 mb-2 font-medium">
                     日期
                   </label>
                   <Input
@@ -402,7 +402,7 @@ export default function SchedulePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                  <label className="block text-xs text-gray-600 mb-2 font-medium">
                     时间（可选）
                   </label>
                   <Input
@@ -419,7 +419,7 @@ export default function SchedulePage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 mb-2 font-medium">
                   描述
                 </label>
                 <Textarea
@@ -436,13 +436,13 @@ export default function SchedulePage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                <label className="block text-xs text-gray-600 mb-2 font-medium">
                   相关图片
                 </label>
                 <div className="space-y-2">
-                  <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 dark:hover:border-purple-500 transition-colors">
-                    <Upload className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                    <Upload className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">
                       {uploading ? "上传中..." : "点击上传或拖拽图片"}
                     </span>
                     <input
@@ -453,7 +453,7 @@ export default function SchedulePage() {
                       disabled={uploading}
                     />
                   </label>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  <div className="text-xs text-gray-500 mb-2">
                     或输入图片 URL：
                   </div>
                   <Input
@@ -496,7 +496,7 @@ export default function SchedulePage() {
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
                     type="checkbox"
                     checked={editingSchedule.enable_notification}
@@ -506,7 +506,7 @@ export default function SchedulePage() {
                         enable_notification: e.target.checked,
                       })
                     }
-                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-purple-600 focus:ring-purple-500"
+                    className="h-4 w-4 rounded border-gray-300 bg-white text-purple-600 focus:ring-purple-500"
                   />
                   到期时推送通知
                 </label>
@@ -528,7 +528,7 @@ export default function SchedulePage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-gray-600">
                 日期：{selectedDate?.toLocaleDateString("zh-CN")}
               </div>
               {selectedDate && (() => {
@@ -536,7 +536,7 @@ export default function SchedulePage() {
                 return dayData && dayData.appointments && dayData.appointments.length > 0
               })() && (
                 <div>
-                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  <div className="text-xs font-medium text-gray-600 mb-2">
                     客户预约：
                   </div>
                   {calendarDays
@@ -544,24 +544,24 @@ export default function SchedulePage() {
                     ?.appointments.map((apt) => (
                       <div
                         key={apt.id}
-                        className="p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 mb-3 space-y-2"
+                        className="p-4 rounded-lg bg-red-50 border border-red-200 mb-3 space-y-2"
                       >
                         <div className="grid gap-2">
                           <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">客户姓名</div>
-                            <div className="text-sm font-semibold text-red-900 dark:text-red-400">
+                            <div className="text-xs text-gray-500 mb-1">客户姓名</div>
+                            <div className="text-sm font-semibold text-red-900">
                               {apt.name}
                             </div>
                           </div>
                           <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">联系电话</div>
-                            <div className="text-sm text-red-700 dark:text-red-400">
+                            <div className="text-xs text-gray-500 mb-1">联系电话</div>
+                            <div className="text-sm text-red-700">
                               {apt.phone}
                             </div>
                           </div>
                           <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">预约时间</div>
-                            <div className="text-sm text-red-700 dark:text-red-400">
+                            <div className="text-xs text-gray-500 mb-1">预约时间</div>
+                            <div className="text-sm text-red-700">
                               {apt.appointment_time
                                 ? new Date(apt.appointment_time).toLocaleString("zh-CN", {
                                     year: "numeric",
@@ -574,20 +574,20 @@ export default function SchedulePage() {
                             </div>
                           </div>
                           <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">需求内容</div>
-                            <div className="text-sm text-red-600 dark:text-red-500 whitespace-pre-wrap bg-white dark:bg-red-900/20 p-2 rounded border border-red-200 dark:border-red-800">
+                            <div className="text-xs text-gray-500 mb-1">需求内容</div>
+                            <div className="text-sm text-red-600 whitespace-pre-wrap bg-white p-2 rounded border border-red-200">
                               {apt.message || "无"}
                             </div>
                           </div>
                           <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">状态</div>
+                            <div className="text-xs text-gray-500 mb-1">状态</div>
                             <span className={`
                               inline-block px-2 py-1 rounded text-xs font-semibold
                               ${apt.status === "new" 
-                                ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700" 
+                                ? "bg-red-100 text-red-700 border border-red-300" 
                                 : apt.status === "contacted"
-                                ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700"
-                                : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700"
+                                ? "bg-yellow-100 text-yellow-700 border border-yellow-300"
+                                : "bg-green-100 text-green-700 border border-green-300"
                               }
                             `}>
                               {apt.status === "new" ? "待处理" : apt.status === "contacted" ? "已联系" : "已完成"}
@@ -603,7 +603,7 @@ export default function SchedulePage() {
                 return dayData && dayData.schedules && dayData.schedules.length > 0
               })() && (
                 <div>
-                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  <div className="text-xs font-medium text-gray-600 mb-2">
                     自定义日程：
                   </div>
                   {calendarDays
@@ -611,18 +611,18 @@ export default function SchedulePage() {
                     ?.schedules.map((sched) => (
                       <div
                         key={sched.id}
-                        className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 mb-2"
+                        className="p-3 rounded-lg bg-blue-50 border border-blue-200 mb-2"
                       >
-                        <div className="text-sm font-medium text-blue-900 dark:text-blue-400">
+                        <div className="text-sm font-medium text-blue-900">
                           {sched.title}
                         </div>
                         {sched.scheduled_time && (
-                          <div className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+                          <div className="text-xs text-blue-700 mt-1">
                             时间：{sched.scheduled_time}
                           </div>
                         )}
                         {sched.description && (
-                          <div className="text-xs text-blue-600 dark:text-blue-500 mt-1">
+                          <div className="text-xs text-blue-600 mt-1">
                             {sched.description}
                           </div>
                         )}
@@ -658,7 +658,7 @@ export default function SchedulePage() {
         {/* 本月日程列表 */}
         <Card title="本月日程">
           {loading ? (
-            <div className="text-sm text-gray-500 dark:text-gray-400">加载中...</div>
+            <div className="text-sm text-gray-500">加载中...</div>
           ) : (
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {[...schedules, ...leads.filter(l => l.appointment_time).map(l => ({
@@ -686,7 +686,7 @@ export default function SchedulePage() {
                 .map((item) => (
                   <div
                     key={item.id}
-                    className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                    className="p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                     onClick={() => {
                       if (item.id.startsWith("lead-")) {
                         // 这是客户预约，显示详情但不编辑
@@ -702,17 +702,17 @@ export default function SchedulePage() {
                       setSelectedDate(new Date(item.scheduled_date))
                     }}
                   >
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-gray-900">
                       {item.title}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <div className="text-xs text-gray-500 mt-1">
                       {new Date(item.scheduled_date).toLocaleDateString("zh-CN")}
                       {item.scheduled_time && ` ${item.scheduled_time}`}
                     </div>
                   </div>
                 ))}
               {schedules.length === 0 && leads.filter(l => l.appointment_time).length === 0 && (
-                <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                <div className="text-sm text-gray-500 text-center py-4">
                   本月暂无日程
                 </div>
               )}

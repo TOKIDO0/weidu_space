@@ -224,8 +224,8 @@ export default function DashboardHome() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">仪表盘概览</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900">仪表盘概览</h1>
+        <p className="text-sm text-gray-600 mt-1">
           欢迎回来！这是维度空间后台的概览信息。
         </p>
       </div>
@@ -233,65 +233,65 @@ export default function DashboardHome() {
       {/* Stats Cards - 参考图二设计，使用响应式网格 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
         {/* Total Projects - 紫色渐变 */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 rounded-xl p-6 border border-purple-300 dark:border-purple-800 shadow-lg">
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 border border-purple-300 shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-14 h-14 rounded-xl bg-white/20 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <BookOpen className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="text-4xl font-bold text-white mb-2">
             {loading ? "..." : stats.totalProjects}
           </div>
-          <div className="text-sm text-white/90 dark:text-white/80 font-semibold mb-2">总项目数</div>
-          <div className="text-xs text-white/80 dark:text-white/70 font-medium bg-white/20 dark:bg-white/10 rounded-full px-3 py-1 inline-block">
+          <div className="text-sm text-white/90 font-semibold mb-2">总项目数</div>
+          <div className="text-xs text-white/80 font-medium bg-white/20 rounded-full px-3 py-1 inline-block">
             +{stats.newProjectsThisMonth} 本月新增
           </div>
         </div>
 
         {/* Total Leads - 蓝色渐变 */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-xl p-6 border border-blue-300 dark:border-blue-800 shadow-lg">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 border border-blue-300 shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-14 h-14 rounded-xl bg-white/20 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <Users className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="text-4xl font-bold text-white mb-2">
             {loading ? "..." : stats.totalLeads}
           </div>
-          <div className="text-sm text-white/90 dark:text-white/80 font-semibold mb-2">客户需求总数</div>
-          <div className="text-xs text-white/80 dark:text-white/70 font-medium bg-white/20 dark:bg-white/10 rounded-full px-3 py-1 inline-block">
+          <div className="text-sm text-white/90 font-semibold mb-2">客户需求总数</div>
+          <div className="text-xs text-white/80 font-medium bg-white/20 rounded-full px-3 py-1 inline-block">
             +{stats.newLeadsThisWeek} 本周新增
           </div>
         </div>
 
         {/* Total Reviews - 绿色渐变 */}
-        <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 rounded-xl p-6 border border-green-300 dark:border-green-800 shadow-lg">
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 border border-green-300 shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-14 h-14 rounded-xl bg-white/20 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <MessageSquare className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="text-4xl font-bold text-white mb-2">
             {loading ? "..." : stats.totalReviews}
           </div>
-          <div className="text-sm text-white/90 dark:text-white/80 font-semibold mb-2">评价总数</div>
-          <div className="text-xs text-white/80 dark:text-white/70 font-medium bg-white/20 dark:bg-white/10 rounded-full px-3 py-1 inline-block">
+          <div className="text-sm text-white/90 font-semibold mb-2">评价总数</div>
+          <div className="text-xs text-white/80 font-medium bg-white/20 rounded-full px-3 py-1 inline-block">
             较上月增长
           </div>
         </div>
 
         {/* Active Leads - 橙色渐变 */}
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 rounded-xl p-6 border border-orange-300 dark:border-orange-800 shadow-lg">
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 border border-orange-300 shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-14 h-14 rounded-xl bg-white/20 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <Heart className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="text-4xl font-bold text-white mb-2">
             {loading ? "..." : stats.activeLeads}
           </div>
-          <div className="text-sm text-white/90 dark:text-white/80 font-semibold mb-2">待处理需求</div>
-          <div className="text-xs text-white/80 dark:text-white/70 font-medium bg-white/20 dark:bg-white/10 rounded-full px-3 py-1 inline-block">
+          <div className="text-sm text-white/90 font-semibold mb-2">待处理需求</div>
+          <div className="text-xs text-white/80 font-medium bg-white/20 rounded-full px-3 py-1 inline-block">
             本周已处理
           </div>
         </div>
@@ -300,11 +300,11 @@ export default function DashboardHome() {
       {/* Recent Activities and Quick Actions - 使用响应式网格 */}
       <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
         {/* Recent Activities */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">最近活动</h2>
+              <Clock className="w-4 h-4 text-gray-500" />
+              <h2 className="text-lg font-semibold text-gray-900">最近活动</h2>
             </div>
             <Link 
               href="/projects" 
@@ -319,7 +319,7 @@ export default function DashboardHome() {
               <div className="text-sm text-gray-500 dark:text-gray-400">加载中...</div>
             ) : recentActivities.length > 0 ? (
               recentActivities.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-100 dark:border-gray-700 last:border-0 last:pb-0">
+                <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                   <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
                     activity.color === "blue" ? "bg-blue-500" :
                     activity.color === "green" ? "bg-green-500" :
@@ -327,38 +327,38 @@ export default function DashboardHome() {
                   }`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      <span className="text-sm font-medium text-gray-900">
                         {activity.text}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        activity.color === "blue" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" :
-                        activity.color === "green" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" :
-                        "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                        activity.color === "blue" ? "bg-blue-100 text-blue-700" :
+                        activity.color === "green" ? "bg-green-100 text-green-700" :
+                        "bg-orange-100 text-orange-700"
                       }`}>
                         {activity.label}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-xs text-gray-500">
                       {formatTime(activity.time)}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-sm text-gray-500 dark:text-gray-400 py-4">暂无活动</div>
+              <div className="text-sm text-gray-500 py-4">暂无活动</div>
             )}
           </div>
         </div>
 
         {/* Upcoming Events - 参考图二设计 */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">即将到来的事件</h2>
+            <Calendar className="w-4 h-4 text-gray-500" />
+            <h2 className="text-lg font-semibold text-gray-900">即将到来的事件</h2>
           </div>
           <div className="space-y-3">
             {loading ? (
-              <div className="text-sm text-gray-500 dark:text-gray-400">加载中...</div>
+              <div className="text-sm text-gray-500">加载中...</div>
             ) : upcomingEvents.length > 0 ? (
               upcomingEvents.map((event, index) => {
                 const eventDate = new Date(event.time)
@@ -372,20 +372,20 @@ export default function DashboardHome() {
                   day: "numeric"
                 })
                 return (
-                  <div key={event.id || index} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <div key={event.id || index} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <div className="text-sm font-medium text-gray-900 truncate">
                         {event.title}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-xs font-medium ${
                           event.color === "purple" 
-                            ? "text-purple-600 dark:text-purple-400" 
-                            : "text-green-600 dark:text-green-400"
+                            ? "text-purple-600" 
+                            : "text-green-600"
                         }`}>
                           {timeStr}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-gray-500">
                           {dateStr}
                         </span>
                       </div>
@@ -394,38 +394,38 @@ export default function DashboardHome() {
                 )
               })
             ) : (
-              <div className="text-sm text-gray-500 dark:text-gray-400 py-4">暂无即将到来的事件</div>
+              <div className="text-sm text-gray-500 py-4">暂无即将到来的事件</div>
             )}
           </div>
         </div>
       </div>
 
       {/* Monthly Goal Progress */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">月度目标进度</h2>
+            <TrendingUp className="w-4 h-4 text-gray-500" />
+            <h2 className="text-lg font-semibold text-gray-900">月度目标进度</h2>
           </div>
-          <span className="text-sm text-gray-500 dark:text-gray-400">目标: {stats.totalProjects + 5} 个项目</span>
+          <span className="text-sm text-gray-500">目标: {stats.totalProjects + 5} 个项目</span>
         </div>
         <div className="space-y-3">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+            <span className="text-2xl font-bold text-gray-900">
               {loading ? "..." : stats.totalProjects}
             </span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-sm text-gray-600">
               已完成
             </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-green-500 to-green-600 h-full rounded-full transition-all duration-500"
               style={{ width: `${goalProgress}%` }}
             />
           </div>
           <div className="flex items-center justify-end">
-            <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+            <span className="text-sm text-green-600 font-medium">
               {loading ? "..." : `${Math.round(goalProgress)}% 完成`}
             </span>
           </div>

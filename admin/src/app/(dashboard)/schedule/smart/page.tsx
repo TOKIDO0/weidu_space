@@ -637,7 +637,7 @@ export default function SmartSchedulingPage() {
 
       {/* 冲突提示 */}
       {conflicts.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
+        <div className="rounded-xl border border-orange-200 bg-orange-50 shadow-sm">
           <div className="flex items-start gap-3 p-4">
             <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
             <div className="flex-1">
@@ -653,17 +653,14 @@ export default function SmartSchedulingPage() {
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* 排期结果 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 任务列表 */}
-        <Card>
+        <Card title={`任务列表 (${tasks.length})`}>
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              任务列表 ({tasks.length})
-            </h2>
             <div className="space-y-3 max-h-[600px] overflow-y-auto">
               {tasks.map((task) => {
                 const scheduled = schedule.find((s) => s.taskId === task.id)
@@ -721,12 +718,54 @@ export default function SmartSchedulingPage() {
                                 ))}
                               </select>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <Calendar className="w-3 h-3" />
-                              <span>
-                                {scheduled.startDate.toLocaleDateString("zh-CN")} -{" "}
-                                {scheduled.endDate.toLocaleDateString("zh-CN")}
-                              </span>
+                              <input
+                                type="date"
+                                value={scheduled.startDate.toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                  const newStartDate = new Date(e.target.value)
+                                  const daysDiff = Math.ceil((scheduled.endDate.getTime() - scheduled.startDate.getTime()) / (1000 * 60 * 60 * 24))
+                                  const newEndDate = new Date(newStartDate.getTime() + daysDiff * 24 * 60 * 60 * 1000)
+                                  setSchedule(prev => prev.map(s =>
+                                    s.taskId === task.id
+                                      ? { ...s, startDate: newStartDate, endDate: newEndDate }
+                                      : s
+                                  ))
+                                  setTasks(prev => prev.map(t =>
+                                    t.id === task.id
+                                      ? { ...t, startDate: newStartDate, endDate: newEndDate }
+                                      : t
+                                  ))
+                                }}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-900"
+                              />
+                              <span> - </span>
+                              <input
+                                type="date"
+                                value={scheduled.endDate.toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                  const newEndDate = new Date(e.target.value)
+                                  setSchedule(prev => prev.map(s =>
+                                    s.taskId === task.id
+                                      ? { ...s, endDate: newEndDate }
+                                      : s
+                                  ))
+                                  setTasks(prev => prev.map(t =>
+                                    t.id === task.id
+                                      ? { ...t, endDate: newEndDate }
+                                      : t
+                                  ))
+                                  // 更新工期天数
+                                  const newDays = Math.ceil((newEndDate.getTime() - scheduled.startDate.getTime()) / (1000 * 60 * 60 * 24))
+                                  setTasks(prev => prev.map(t =>
+                                    t.id === task.id
+                                      ? { ...t, estimatedDays: newDays }
+                                      : t
+                                  ))
+                                }}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-900"
+                              />
                             </div>
                             <div className="flex items-center gap-2">
                               <Clock className="w-3 h-3" />
@@ -774,13 +813,8 @@ export default function SmartSchedulingPage() {
         </Card>
 
         {/* 工人工作负荷 */}
-        <Card>
+        <Card title={`工人列表 (${workers.length})`}>
           <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                工人列表 ({workers.length})
-              </h2>
-            </div>
             <div className="space-y-4">
               {workers.map((worker) => {
                 const workerTasks = schedule.filter((s) => s.workerId === worker.id)

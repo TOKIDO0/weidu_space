@@ -371,13 +371,13 @@ export default function ProjectProgressPage() {
                                     ) : null}
                                   </div>
                                   <div className="flex gap-2 shrink-0">
-                                    <Button variant="ghost" size="sm" onClick={() => {
+                                    <Button variant="ghost"  onClick={() => {
                                       setEditing(progress)
                                       setSelectedProjectId(progress.project_id)
                                     }}>
                                       编辑
                                     </Button>
-                                    <Button variant="danger" size="sm" onClick={() => deleteProgress(progress.id)}>
+                                    <Button variant="danger"  onClick={() => deleteProgress(progress.id)}>
                                       删除
                                     </Button>
                                   </div>

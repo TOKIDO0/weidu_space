@@ -3,14 +3,17 @@
 <title>WeiDU | 维度空间设计</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=jfvWkRaS03ugguI4feuoyygvgucI3Q7Y"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://api.map.baidu.com/api?v=3.0&ak=jfvWkRaS03ugguI4feuoyygvgucI3Q7Y"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"></noscript>
+<script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Outfit:wght@200;300;400;600&family=Syncopate:wght@400;700&display=swap');
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Outfit:wght@200;300;400;600&family=Syncopate:wght@400;700&display=swap">
 :root {
     --brand-orange: #ff4d00;
     --deep-bg: #050505;
@@ -126,6 +129,43 @@ body {
 .pf-nav-group { position: absolute; bottom: 30px; right: 30px; display: flex; gap: 10px; z-index: 20; }
 .pf-nav-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; transition: all 0.2s; }
 .pf-nav-btn:hover { background: var(--brand-orange); border-color: var(--brand-orange); }
+.pf-close-float { 
+    position: absolute; 
+    top: 20px; 
+    right: 20px; 
+    z-index: 50; 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    background: rgba(255,255,255,0.1); 
+    color: white; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: all 0.3s; 
+    border: 1px solid rgba(255,255,255,0.2);
+    overflow: hidden;
+}
+.pf-close-float::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.6s ease;
+}
+.pf-close-float:hover::before {
+    left: 100%;
+}
+.pf-close-float:hover { 
+    background: rgba(255,255,255,0.2); 
+    color: #fff; 
+    transform: rotate(90deg);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
 .pf-action-btn {
     padding: 14px 21px; 
     background: rgb(51, 51, 51); 
@@ -442,7 +482,7 @@ body {
                 <a href="project-track.html" class="hover:text-white transition-colors duration-300">项目跟踪</a>
                 <a href="#contact" class="hover:text-white transition-colors duration-300">联系我们</a>
             </div>
-            <a href="#contact" class="group relative inline-flex h-9 items-center justify-center overflow-hidden rounded-full p-[1px]" style="margin-right: -50px;">
+            <a href="#contact" class="group relative inline-flex h-9 items-center justify-center overflow-hidden rounded-full p-[1px]" style="margin-right: -20px;">
                 <span class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#171717_0%,#ff4d00_50%,#171717_100%)]"></span>
                 <span class="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-neutral-950 px-5 text-xs font-medium text-neutral-300 backdrop-blur-3xl transition-colors group-hover:text-white">
                     <iconify-icon icon="solar:phone-linear" width="16" class="mr-2"></iconify-icon> 预约咨询
@@ -725,6 +765,9 @@ body {
             </div>
             <!-- Info Layer with 3D Tilt & Staggered Content -->
             <div class="pf-layer-info" id="pfInfoBox">
+                <button class="pf-close-float" onclick="closePfModal()" aria-label="关闭">
+                    <iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon>
+                </button>
                 <div class="pf-title-group pf-stagger-item" style="transition-delay: 0.1s">
                     <div class="text-xs text-gray-400 mb-2 font-['Syncopate'] tracking-wider" id="pfProjectId" style="display: none;">项目ID: <span id="pfProjectIdValue"></span></div>
                     <span id="pfCategory">RESIDENTIAL</span>
@@ -933,15 +976,28 @@ body {
             }
         }
 
-        // 页面加载时获取项目数据
+        // 页面加载时获取项目数据（延迟加载）
+        function initPageData() {
+            if (window.supabase) {
+                loadProjects();
+                loadReviews();
+            } else {
+                setTimeout(initPageData, 100);
+            }
+        }
+        
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(loadProjects, 500); // 等待 Supabase 库加载
-                handleProjectIdFromUrl(); // 处理URL中的项目ID
+                setTimeout(() => {
+                    initPageData();
+                    handleProjectIdFromUrl();
+                }, 300);
             });
         } else {
-            setTimeout(loadProjects, 500);
-            handleProjectIdFromUrl(); // 处理URL中的项目ID
+            setTimeout(() => {
+                initPageData();
+                handleProjectIdFromUrl();
+            }, 300);
         }
 
         // 处理URL中的项目ID参数
@@ -1228,17 +1284,14 @@ body {
             }
         }
 
-        // 页面加载时获取评价数据
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(loadReviews, 500);
-            });
-        } else {
-            setTimeout(loadReviews, 500);
-        }
+        // 评价数据在initPageData中加载
 
-        // --- Baidu Map Initialization ---
+        // --- Baidu Map Initialization (Lazy Load) ---
+        let mapInitialized = false;
         function initBaiduMap() {
+            if (mapInitialized || typeof BMap === 'undefined') return;
+            mapInitialized = true;
+            
             const map = new BMap.Map("baiduMap");
             const point = new BMap.Point(82.606194, 41.559479);
             map.centerAndZoom(point, 16);
@@ -1263,11 +1316,23 @@ body {
             map.addControl(new BMap.ScaleControl());
         }
         
-        // Wait for Baidu Map API to load
-        if (typeof BMap !== 'undefined') {
-            initBaiduMap();
-        } else {
-            window.addEventListener('load', initBaiduMap);
+        // Lazy load map when contact section is visible
+        const contactObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !mapInitialized) {
+                    if (typeof BMap !== 'undefined') {
+                        initBaiduMap();
+                    } else {
+                        window.addEventListener('load', initBaiduMap);
+                    }
+                    contactObserver.disconnect();
+                }
+            });
+        }, { rootMargin: '200px' });
+        
+        const contactSection = document.getElementById('contact');
+        if (contactSection) {
+            contactObserver.observe(contactSection);
         }
 
         // --- Appointment Date/Time Picker ---

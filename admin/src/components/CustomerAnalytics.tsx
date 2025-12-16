@@ -89,7 +89,7 @@ function ContactPieChart({ data }: { data: { name: string; value: number }[] }) 
           outerRadius={80}
           fill="#8884d8"
           dataKey="value"
-          activeIndex={activeIndex}
+          activeIndex={activeIndex ?? undefined}
           activeShape={renderActiveShape}
           onMouseEnter={(_, index) => setActiveIndex(index)}
           onMouseLeave={() => setActiveIndex(null)}
@@ -224,8 +224,8 @@ export function CustomerAnalytics() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-        <div className="text-center text-gray-500 dark:text-gray-400">加载中...</div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div className="text-center text-gray-500">加载中...</div>
       </div>
     )
   }
@@ -237,17 +237,17 @@ export function CustomerAnalytics() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">客户画像分析</h2>
+        <TrendingUp className="w-5 h-5 text-purple-600" />
+        <h2 className="text-xl font-semibold text-gray-900">客户画像分析</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 预算分布 */}
         {analytics.budgetDistribution.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
-              <DollarSign className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">预算分布</h3>
+              <DollarSign className="w-4 h-4 text-gray-500" />
+              <h3 className="text-lg font-semibold text-gray-900">预算分布</h3>
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -273,10 +273,10 @@ export function CustomerAnalytics() {
 
         {/* 风格偏好 */}
         {analytics.stylePreferences.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Palette className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">风格偏好</h3>
+              <Palette className="w-4 h-4 text-gray-500" />
+              <h3 className="text-lg font-semibold text-gray-900">风格偏好</h3>
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.stylePreferences}>
@@ -292,10 +292,10 @@ export function CustomerAnalytics() {
 
         {/* 联系方式分布 - 带3D效果 */}
         {analytics.contactTypeDistribution.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 relative overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 relative overflow-hidden">
             <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">联系方式分布</h3>
+              <MessageSquare className="w-4 h-4 text-gray-500" />
+              <h3 className="text-lg font-semibold text-gray-900">联系方式分布</h3>
             </div>
             <ContactPieChart data={analytics.contactTypeDistribution} />
           </div>
@@ -303,13 +303,13 @@ export function CustomerAnalytics() {
 
         {/* 热门关键词 */}
         {analytics.popularKeywords.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">热门关键词</h3>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">热门关键词</h3>
             <div className="flex flex-wrap gap-2">
               {analytics.popularKeywords.map((keyword, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
+                  className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700"
                 >
                   {keyword.word} ({keyword.count})
                 </span>
@@ -320,13 +320,13 @@ export function CustomerAnalytics() {
       </div>
 
       {/* 转化率统计 */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">转化率统计</h3>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">转化率统计</h3>
         <div className="flex items-center gap-4">
-          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+          <div className="text-3xl font-bold text-purple-600">
             {analytics.conversionRate.toFixed(1)}%
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600">
             客户需求转化率
           </div>
         </div>
