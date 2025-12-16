@@ -1288,17 +1288,11 @@ body {
         // 评价数据在initPageData中加载
 
         // --- Baidu Map Initialization ---
-        let mapInitialized = false;
         function initBaiduMap() {
-            if (mapInitialized) return;
-            
             if (typeof BMap === 'undefined') {
-                // 如果 BMap 还没加载，等待加载完成
                 setTimeout(initBaiduMap, 100);
                 return;
             }
-            
-            mapInitialized = true;
             
             const map = new BMap.Map("baiduMap");
             const point = new BMap.Point(82.606194, 41.559479);
@@ -1324,33 +1318,11 @@ body {
             map.addControl(new BMap.ScaleControl());
         }
         
-        // 延迟加载地图，当联系板块可见时初始化
-        const contactObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && !mapInitialized) {
-                    initBaiduMap();
-                    contactObserver.disconnect();
-                }
-            });
-        }, { rootMargin: '200px' });
-        
-        const contactSection = document.getElementById('contact');
-        if (contactSection) {
-            contactObserver.observe(contactSection);
-        }
-        
-        // 备用：如果页面加载完成时联系板块已经可见，直接初始化
-        if (document.readyState === 'complete') {
-            setTimeout(() => {
-                const contactSection = document.getElementById('contact');
-                if (contactSection) {
-                    const rect = contactSection.getBoundingClientRect();
-                    const isVisible = rect.top < window.innerHeight + 200 && rect.bottom > -200;
-                    if (isVisible && !mapInitialized) {
-                        initBaiduMap();
-                    }
-                }
-            }, 500);
+        // 等待百度地图API加载完成后初始化
+        if (typeof BMap !== 'undefined') {
+            initBaiduMap();
+        } else {
+            window.addEventListener('load', initBaiduMap);
         }
 
         // --- Appointment Date/Time Picker ---

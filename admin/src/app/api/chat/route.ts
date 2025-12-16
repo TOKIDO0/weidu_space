@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+const ZHIPU_API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
 // 允许跨域请求（用于前台HTML页面访问）
 export async function OPTIONS(request: NextRequest) {
@@ -16,14 +16,14 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, contextData, model = "gemini-1.5-pro" } = await request.json()
+    const { message, contextData } = await request.json()
 
     // 从环境变量获取 API Key（只使用服务器端变量，确保安全）
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ""
+    const ZHIPU_API_KEY = process.env.ZHIPU_API_KEY || ""
 
-    if (!GEMINI_API_KEY) {
+    if (!ZHIPU_API_KEY) {
       return NextResponse.json(
-        { error: "API Key 未配置，请在服务器端环境变量中设置 GEMINI_API_KEY" },
+        { error: "API Key 未配置，请在服务器端环境变量中设置 ZHIPU_API_KEY" },
         { status: 500 }
       )
     }
@@ -56,23 +56,32 @@ ${contextData.reviews?.map((r: any) =>
 
 请用中文回答，回答要准确、有帮助性。回答格式要尽量干净，可以使用markdown格式让内容更清晰。不得使用*号出现在回复中，同时不能包含任何违法违规的内容。`
 
-    const fullPrompt = `${systemPrompt}\n\n用户问题：${message}`
+    // 构建消息数组（智谱API格式）
+    const messages = [
+      {
+        role: "system",
+        content: systemPrompt
+      },
+      {
+        role: "user",
+        content: message
+      }
+    ]
 
-    // 调用 Gemini API（使用动态模型）
-    const modelName = model || "gemini-1.5-pro"
+    // 调用智谱API（GLM-4.5-Flash，流式响应）
     const response = await fetch(
-      `${GEMINI_API_URL}/${modelName}:generateContent?key=${GEMINI_API_KEY}`,
+      ZHIPU_API_URL,
       {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${ZHIPU_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: fullPrompt }],
-            },
-          ],
+          model: "glm-4.5-flash",
+          messages: messages,
+          stream: true,
+          temperature: 0.7,
         }),
       }
     )
@@ -100,7 +109,7 @@ ${contextData.reviews?.map((r: any) =>
         console.error("读取错误响应失败:", e)
       }
       
-      console.error("Gemini API 错误:", response.status, errorText)
+      console.error("智谱API 错误:", response.status, errorText)
       return NextResponse.json(
         { error: errorMessage },
         { 
@@ -114,66 +123,82 @@ ${contextData.reviews?.map((r: any) =>
       )
     }
 
-    let data
-    try {
-      const responseText = await response.text()
-      if (!responseText || responseText.trim() === "") {
-        return NextResponse.json(
-          { error: "AI 服务返回了空响应" },
-          { 
-            status: 500,
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'POST, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type',
-            },
+    // 处理流式响应
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let fullText = ""
+
+    if (!reader) {
+      return NextResponse.json(
+        { error: "无法读取响应流" },
+        { 
+          status: 500,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+          },
+        }
+      )
+    }
+
+    // 创建流式响应
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = decoder.decode(value, { stream: true })
+            const lines = chunk.split('\n')
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6)
+                if (data === '[DONE]') {
+                  controller.close()
+                  return
+                }
+
+                try {
+                  const json = JSON.parse(data)
+                  // 智谱API流式响应格式：choices[0].delta.content
+                  const content = json.choices?.[0]?.delta?.content || ""
+                  if (content) {
+                    fullText += content
+                    // 发送SSE格式数据
+                    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ content })}\n\n`))
+                  }
+                  // 检查是否完成
+                  if (json.choices?.[0]?.finish_reason) {
+                    controller.close()
+                    return
+                  }
+                } catch (e) {
+                  // 忽略解析错误，继续处理下一行
+                }
+              }
+            }
           }
-        )
-      }
-      data = JSON.parse(responseText)
-    } catch (e) {
-      console.error("解析响应JSON失败:", e)
-      return NextResponse.json(
-        { error: "AI 服务返回了无效的响应格式" },
-        { 
-          status: 500,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          },
+          controller.close()
+        } catch (error) {
+          controller.error(error)
         }
-      )
-    }
-
-    const assistantText =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "抱歉，我无法生成回复。"
-
-    if (!assistantText || assistantText.trim() === "") {
-      return NextResponse.json(
-        { error: "AI 服务返回了空回复" },
-        { 
-          status: 500,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          },
-        }
-      )
-    }
-
-    return NextResponse.json(
-      { message: assistantText },
-      {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
       }
-    )
+    })
+
+    // 返回流式响应
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    })
   } catch (error: any) {
     console.error("API 路由错误:", error)
     const errorMessage = error.message || "服务器错误，请检查网络连接或稍后重试"
