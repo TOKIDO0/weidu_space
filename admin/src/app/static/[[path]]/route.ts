@@ -7,20 +7,22 @@ export const runtime = 'nodejs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path?: string[] } }
+  { params }: { params: Promise<{ path?: string }> }
 ) {
+  // 在 Next.js 16 中，params 是 Promise，需要先 await
+  const resolvedParams = await params
+  
   // #region agent log
-  const logData = { location: 'static/[[path]]/route.ts:10', message: 'Static route called', data: { path: params.path, pathname: request.nextUrl.pathname }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }
+  const logData = { location: 'static/[[path]]/route.ts:10', message: 'Static route called', data: { path: resolvedParams.path, pathname: request.nextUrl.pathname }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }
   fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(logData) }).catch(() => {})
   // #endregion
   
   // 构建文件路径
   let fileName: string
-  if (!params.path || params.path.length === 0) {
+  if (!resolvedParams.path || resolvedParams.path.trim() === '') {
     fileName = 'index.html'
   } else {
-    const pathParts = params.path
-    fileName = pathParts.join('/')
+    fileName = resolvedParams.path
     // 确保有.html扩展名
     if (!fileName.endsWith('.html')) {
       fileName += '.html'
