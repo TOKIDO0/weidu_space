@@ -170,22 +170,80 @@ ${contextData.knowledgeBase.map((kb: any) =>
         }),
       })
 
-      const data = await response.json()
-      
       if (!response.ok) {
-        throw new Error(data.error || "API 请求失败")
-      }
-      
-      if (!data.message) {
-        throw new Error("AI 服务返回了无效的响应")
-      }
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.message || "抱歉，我无法生成回复。",
-        timestamp: new Date(),
+        const errorData = await response.json().catch(() => ({ error: "API 请求失败" }))
+        throw new Error(errorData.error || "API 请求失败")
       }
 
-      setMessages((prev) => [...prev, assistantMessage])
+      // 检查响应类型
+      const contentType = response.headers.get('content-type')
+      let assistantContent = ""
+
+      if (contentType && contentType.includes('text/event-stream')) {
+        // 处理流式响应
+        const reader = response.body?.getReader()
+        const decoder = new TextDecoder()
+        
+        if (!reader) {
+          throw new Error("无法读取响应流")
+        }
+
+        // 创建临时消息用于流式更新
+        const tempMessage: Message = {
+          role: "assistant",
+          content: "",
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, tempMessage])
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          const lines = chunk.split('\n')
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim()
+              if (data === '[DONE]' || data === '') continue
+
+              try {
+                const json = JSON.parse(data)
+                const content = json.content || ''
+                if (content) {
+                  assistantContent += content
+                  // 更新最后一条消息
+                  setMessages((prev) => {
+                    const newMessages = [...prev]
+                    newMessages[newMessages.length - 1] = {
+                      ...tempMessage,
+                      content: assistantContent,
+                    }
+                    return newMessages
+                  })
+                }
+              } catch (e) {
+                // 忽略解析错误，继续处理下一行
+                console.warn('解析流式数据失败:', e, data)
+              }
+            }
+          }
+        }
+      } else {
+        // 处理非流式响应
+        const data = await response.json()
+        if (!data.message) {
+          throw new Error("AI 服务返回了无效的响应")
+        }
+        assistantContent = data.message
+        const assistantMessage: Message = {
+          role: "assistant",
+          content: assistantContent,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+      }
     } catch (error: any) {
       const errorMessage: Message = {
         role: "assistant",
