@@ -1,11 +1,14 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "cd admin && npm install && npm run build",
   "outputDirectory": "admin/.next",
   "installCommand": "cd admin && npm install",
   "framework": "nextjs",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/admin/(.*)", "destination": "/admin/$1" },
     { "source": "/", "destination": "/public/index.html" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    { "source": "/(.*\\.html)", "destination": "/public/$1" },
+    { "source": "/(.*)", "destination": "/admin/$1" }
   ],
   "crons": [
     {
