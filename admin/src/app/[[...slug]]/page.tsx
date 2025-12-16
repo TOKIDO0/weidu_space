@@ -2,29 +2,35 @@ import { NextRequest, NextResponse } from "next/server"
 import { readFileSync, existsSync } from "fs"
 import { join } from "path"
 
-// 处理静态HTML文件的请求（仅在生产环境）
-export default async function StaticPage(request: NextRequest) {
-  // 只处理HTML文件请求和根路径
+// 处理静态HTML文件的请求
+export default async function StaticPage(
+  request: NextRequest,
+  { params }: { params: { slug?: string[] } }
+) {
   const pathname = request.nextUrl.pathname
   
-  // 如果是API路由，跳过
+  // 如果是API路由，返回404让Next.js处理
   if (pathname.startsWith('/api/')) {
-    return NextResponse.next()
+    return new NextResponse(null, { status: 404 })
   }
   
-  // 如果是后台管理路由，跳过
-  if (pathname.startsWith('/login') || 
-      pathname.startsWith('/setup') || 
-      pathname.startsWith('/leads') ||
-      pathname.startsWith('/projects') ||
-      pathname.startsWith('/reviews') ||
-      pathname.startsWith('/schedule') ||
-      pathname.startsWith('/project-progress')) {
-    return NextResponse.next()
+  // 如果是已知的后台管理路由，返回404让Next.js处理
+  const adminRoutes = ['/login', '/setup', '/leads', '/projects', '/reviews', '/schedule', '/project-progress']
+  if (adminRoutes.some(route => pathname.startsWith(route))) {
+    return new NextResponse(null, { status: 404 })
   }
   
-  // 处理HTML文件请求
-  const fileName = pathname === '/' ? 'index.html' : pathname.endsWith('.html') ? pathname.slice(1) : `${pathname}.html`
+  // 只处理根路径或HTML文件请求
+  let fileName: string
+  if (pathname === '/') {
+    fileName = 'index.html'
+  } else if (pathname.endsWith('.html')) {
+    fileName = pathname.slice(1) // 移除前导斜杠
+  } else {
+    // 如果不是HTML文件，返回404
+    return new NextResponse(null, { status: 404 })
+  }
+  
   const filePath = join(process.cwd(), 'public', fileName)
   
   if (existsSync(filePath)) {
@@ -33,14 +39,16 @@ export default async function StaticPage(request: NextRequest) {
       return new NextResponse(fileContent, {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
         },
       })
     } catch (error) {
       console.error('Error reading file:', error)
+      return new NextResponse(null, { status: 500 })
     }
   }
   
-  // 如果文件不存在，继续Next.js的正常路由处理
-  return NextResponse.next()
+  // 如果文件不存在，返回404
+  return new NextResponse(null, { status: 404 })
 }
 
