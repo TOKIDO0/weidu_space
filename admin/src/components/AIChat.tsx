@@ -262,6 +262,9 @@ ${contextData.knowledgeBase.map((kb: any) =>
                 } catch (e) {
                   // 忽略解析错误，继续处理下一行
                   console.warn('解析流式数据失败:', e, data)
+                  // #region agent log
+                  fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AIChat.tsx:262',message:'JSON parse error in stream',data:{error:String(e),dataPreview:data.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+                  // #endregion
                 }
               }
             }
