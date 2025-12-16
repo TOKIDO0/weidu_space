@@ -15,8 +15,14 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:18',message:'API POST request started',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   try {
     const { message, contextData } = await request.json()
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:21',message:'Request parsed',data:{hasMessage:!!message,hasContextData:!!contextData},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
 
     // 从环境变量获取 API Key（只使用服务器端变量，确保安全）
     const ZHIPU_API_KEY = process.env.ZHIPU_API_KEY || ""
@@ -69,6 +75,9 @@ ${contextData.reviews?.map((r: any) =>
     ]
 
     // 调用智谱API（GLM-4.5-Flash，流式响应）
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:72',message:'Calling Zhipu API',data:{hasApiKey:!!ZHIPU_API_KEY,messagesCount:messages.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     const response = await fetch(
       ZHIPU_API_URL,
       {
@@ -85,6 +94,9 @@ ${contextData.reviews?.map((r: any) =>
         }),
       }
     )
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:89',message:'Zhipu API response received',data:{status:response.status,ok:response.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     if (!response.ok) {
       let errorText = ""
@@ -146,17 +158,25 @@ ${contextData.reviews?.map((r: any) =>
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:147',message:'Stream started',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+          // #endregion
           while (true) {
             const { done, value } = await reader.read()
-            if (done) break
+            if (done) {
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:151',message:'Stream done',data:{fullTextLength:fullText.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+              // #endregion
+              break
+            }
 
             const chunk = decoder.decode(value, { stream: true })
             const lines = chunk.split('\n')
 
             for (const line of lines) {
               if (line.startsWith('data: ')) {
-                const data = line.slice(6)
-                if (data === '[DONE]') {
+                const data = line.slice(6).trim()
+                if (data === '[DONE]' || data === '') {
                   controller.close()
                   return
                 }
@@ -177,12 +197,18 @@ ${contextData.reviews?.map((r: any) =>
                   }
                 } catch (e) {
                   // 忽略解析错误，继续处理下一行
+                  // #region agent log
+                  fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:178',message:'JSON parse error',data:{error:String(e),dataPreview:data.substring(0,50)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                  // #endregion
                 }
               }
             }
           }
           controller.close()
         } catch (error) {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:186',message:'Stream error',data:{error:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+          // #endregion
           controller.error(error)
         }
       }

@@ -24,9 +24,10 @@ export function AIChat({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
-  const [selectedModel, setSelectedModel] = useState("gemini-3-pro-preview")
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const shouldAutoScrollRef = useRef(true)
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -35,8 +36,26 @@ export function AIChat({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
   }, [isOpen])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    // 只在用户主动滚动到底部时才自动滚动
+    if (shouldAutoScrollRef.current && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
   }, [messages])
+  
+  // 监听滚动事件，判断用户是否手动滚动
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
+      shouldAutoScrollRef.current = isNearBottom
+    }
+    
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [])
 
   async function fetchDataForContext() {
     try {
@@ -111,9 +130,11 @@ export function AIChat({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
       timestamp: new Date(),
     }
 
+    const userInput = input
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     setLoading(true)
+    shouldAutoScrollRef.current = true // 用户发送消息时，允许自动滚动
 
     try {
       // 获取上下文数据
@@ -158,20 +179,28 @@ ${contextData.knowledgeBase.map((kb: any) =>
 请用中文回答，回答要准确、有帮助性。无论用户问什么问题，都要尽力回答。如果问题与系统数据相关，可以使用上面的数据；如果问题与系统无关，请根据你的知识回答。`
 
       // 通过 API 路由调用，保护 API Key
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AIChat.tsx:161',message:'Starting API request',data:{messageLength:userInput.length,hasContextData:!!contextData,loadingState:loading},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: input,
+          message: userInput,
           contextData: contextData,
-          model: selectedModel,
         }),
       })
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AIChat.tsx:172',message:'API response received',data:{status:response.status,ok:response.ok,contentType:response.headers.get('content-type')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "API 请求失败" }))
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AIChat.tsx:175',message:'API request failed',data:{status:response.status,error:errorData.error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
         throw new Error(errorData.error || "API 请求失败")
       }
 
@@ -195,40 +224,51 @@ ${contextData.knowledgeBase.map((kb: any) =>
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, tempMessage])
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AIChat.tsx:191',message:'Stream reader created',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/884a451f-c414-4281-8ea5-65c9af9f4af5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AIChat.tsx:199',message:'Reading stream chunk',data:{done,hasValue:!!value},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+            // #endregion
+            if (done) break
 
-          const chunk = decoder.decode(value, { stream: true })
-          const lines = chunk.split('\n')
+            const chunk = decoder.decode(value, { stream: true })
+            const lines = chunk.split('\n')
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6).trim()
-              if (data === '[DONE]' || data === '') continue
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6).trim()
+                if (data === '[DONE]' || data === '') continue
 
-              try {
-                const json = JSON.parse(data)
-                const content = json.content || ''
-                if (content) {
-                  assistantContent += content
-                  // 更新最后一条消息
-                  setMessages((prev) => {
-                    const newMessages = [...prev]
-                    newMessages[newMessages.length - 1] = {
-                      ...tempMessage,
-                      content: assistantContent,
-                    }
-                    return newMessages
-                  })
+                try {
+                  const json = JSON.parse(data)
+                  const content = json.content || ''
+                  if (content) {
+                    assistantContent += content
+                    // 更新最后一条消息
+                    setMessages((prev) => {
+                      const newMessages = [...prev]
+                      newMessages[newMessages.length - 1] = {
+                        ...tempMessage,
+                        content: assistantContent,
+                      }
+                      return newMessages
+                    })
+                  }
+                } catch (e) {
+                  // 忽略解析错误，继续处理下一行
+                  console.warn('解析流式数据失败:', e, data)
                 }
-              } catch (e) {
-                // 忽略解析错误，继续处理下一行
-                console.warn('解析流式数据失败:', e, data)
               }
             }
           }
+        } finally {
+          // 确保reader被正确释放
+          reader.releaseLock()
         }
       } else {
         // 处理非流式响应
@@ -294,23 +334,15 @@ ${contextData.knowledgeBase.map((kb: any) =>
           </button>
         </div>
 
-        {/* 模型选择 */}
-        <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
-          <select
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            className="w-full text-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            {AVAILABLE_MODELS.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.name} - {model.description}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* 消息列表 */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div 
+          ref={messagesContainerRef}
+          className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#a0a0a0 #f0f0f0'
+          }}
+        >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mb-4">
