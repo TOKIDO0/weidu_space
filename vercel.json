@@ -1,12 +1,11 @@
 {
-  "buildCommand": "cd admin && npm install && npm run build",
-  "outputDirectory": "admin/.next",
-  "installCommand": "cd admin && npm install",
+  "buildCommand": "echo 'Frontend static site - no build needed'",
+  "outputDirectory": "public",
   "framework": null,
-  "crons": [
+  "rewrites": [
     {
-      "path": "/api/schedule-notifications",
-      "schedule": "0 8 * * *"
+      "source": "/(.*)",
+      "destination": "/$1.html"
     }
   ]
 }
