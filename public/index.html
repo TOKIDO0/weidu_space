@@ -3,7 +3,7 @@
 <title>WeiDU | 维度空间设计</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<script defer src="https://api.map.baidu.com/api?v=3.0&ak=jfvWkRaS03ugguI4feuoyygvgucI3Q7Y"></script>
+<script src="https://api.map.baidu.com/api?v=3.0&ak=jfvWkRaS03ugguI4feuoyygvgucI3Q7Y"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"></noscript>
 <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -1289,41 +1289,75 @@ body {
 
         // --- Baidu Map Initialization ---
         function initBaiduMap() {
-            if (typeof BMap === 'undefined') {
-                setTimeout(initBaiduMap, 100);
+            const mapContainer = document.getElementById("baiduMap");
+            if (!mapContainer) {
+                console.error("百度地图容器未找到");
                 return;
             }
             
-            const map = new BMap.Map("baiduMap");
-            const point = new BMap.Point(82.606194, 41.559479);
-            map.centerAndZoom(point, 16);
-            map.enableScrollWheelZoom(true);
+            if (typeof BMap === 'undefined') {
+                console.warn("百度地图API未加载，等待加载...");
+                setTimeout(initBaiduMap, 200);
+                return;
+            }
             
-            // 添加标记点
-            const marker = new BMap.Marker(point);
-            map.addOverlay(marker);
-            
-            // 添加信息窗口
-            const infoWindow = new BMap.InfoWindow("新和县迎宾花园小区<br/>维度空间设计工作室", {
-                width: 200,
-                height: 60,
-                title: "WeiDU"
-            });
-            marker.addEventListener("click", function(){
-                map.openInfoWindow(infoWindow, point);
-            });
-            
-            // 添加控件
-            map.addControl(new BMap.NavigationControl());
-            map.addControl(new BMap.ScaleControl());
+            try {
+                const map = new BMap.Map("baiduMap");
+                const point = new BMap.Point(82.606194, 41.559479);
+                map.centerAndZoom(point, 16);
+                map.enableScrollWheelZoom(true);
+                
+                // 添加标记点
+                const marker = new BMap.Marker(point);
+                map.addOverlay(marker);
+                
+                // 添加信息窗口
+                const infoWindow = new BMap.InfoWindow("新和县迎宾花园小区<br/>维度空间设计工作室", {
+                    width: 200,
+                    height: 60,
+                    title: "WeiDU"
+                });
+                marker.addEventListener("click", function(){
+                    map.openInfoWindow(infoWindow, point);
+                });
+                
+                // 添加控件
+                map.addControl(new BMap.NavigationControl());
+                map.addControl(new BMap.ScaleControl());
+                
+                console.log("百度地图初始化成功");
+            } catch (error) {
+                console.error("百度地图初始化失败:", error);
+            }
         }
         
-        // 等待百度地图API加载完成后初始化
-        if (typeof BMap !== 'undefined') {
-            initBaiduMap();
-        } else {
-            window.addEventListener('load', initBaiduMap);
+        // 等待页面和百度地图API都加载完成后初始化
+        function tryInitMap() {
+            if (document.readyState === 'complete' && typeof BMap !== 'undefined') {
+                initBaiduMap();
+            } else if (typeof BMap !== 'undefined') {
+                initBaiduMap();
+            } else {
+                setTimeout(tryInitMap, 200);
+            }
         }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryInitMap);
+        } else {
+            tryInitMap();
+        }
+        
+        // 备用：监听window load事件
+        window.addEventListener('load', function() {
+            if (typeof BMap !== 'undefined') {
+                const mapContainer = document.getElementById("baiduMap");
+                if (mapContainer && !mapContainer.hasAttribute('data-initialized')) {
+                    mapContainer.setAttribute('data-initialized', 'true');
+                    initBaiduMap();
+                }
+            }
+        });
 
         // --- Appointment Date/Time Picker ---
         let contactType = 'immediate';
