@@ -6,13 +6,10 @@ const nextConfig: NextConfig = {
   experimental: {
     // 如果使用 Next.js 15，这些选项可以帮助
   },
-  // 配置重写规则，将根路径和HTML文件请求重定向到静态文件路由
+  // 配置重写规则，将HTML文件请求重定向到静态文件路由
+  // 注意：根路径 / 不再重写，让 Next.js 正常处理后台路由
   async rewrites() {
     return [
-      {
-        source: '/',
-        destination: '/static',
-      },
       {
         source: '/:path*.html',
         destination: '/static/:path*.html',
