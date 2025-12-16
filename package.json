@@ -1,0 +1,14 @@
+{
+  "name": "weidu-space",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd admin && npm install && npm run build",
+    "dev": "cd admin && npm run dev",
+    "start": "cd admin && npm start"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

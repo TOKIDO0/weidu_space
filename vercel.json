@@ -1,9 +1,18 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "outputDirectory": "admin/.next",
+  "installCommand": "cd admin && npm install",
   "framework": "nextjs",
-  "installCommand": "npm install",
-  "rootDirectory": "admin"
+  "rewrites": [
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/(.*)", "destination": "/public/$1" }
+  ],
+  "crons": [
+    {
+      "path": "/api/schedule-notifications",
+      "schedule": "0 8 * * *"
+    }
+  ]
 }
 
 
