@@ -273,11 +273,14 @@
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       
       if (isLocal) {
-        window.CHAT_API_URL = 'http://localhost:3000/api/chat'  // 本地开发
+        window.CHAT_API_URL = `http://${window.location.hostname}:3001/api/chat`  // 本地开发（后台端口）
       } else {
         // 生产环境API URL配置
         // 方案1: 如果前台和后台在同一域名，使用相对路径
-        window.CHAT_API_URL = window.location.origin + '/api/chat'
+        const adminApiOrigin = window.location.hostname.startsWith('admin.')
+          ? window.location.origin
+          : 'https://admin.105911.xyz'
+        window.CHAT_API_URL = adminApiOrigin + '/api/chat'
         
         // 方案2: 如果后台在子路径 /admin 下，取消下面注释
         // window.CHAT_API_URL = window.location.origin + '/admin/api/chat'
