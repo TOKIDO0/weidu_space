@@ -400,7 +400,17 @@
   <script>
     const SUPABASE_URL = 'https://aitxgwfqtcrxxcglwmrq.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdHhnd2ZxdGNyeHhjZ2x3bXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NDc1NTQsImV4cCI6MjA4MTIyMzU1NH0.OLDft-LmrRZEGEUEzJ9srevbnI68vV9jWf4Ym05lkAw'
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    async function initSupabase() {
+      // 防止 CDN/Supabase SDK 加载慢导致页面脚本直接报错而中断
+      let attempts = 0
+      while ((!window.supabase || !window.supabase.createClient) && attempts < 100) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        attempts += 1
+      }
+      if (!window.supabase || !window.supabase.createClient) return null
+      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    }
 
     let allProjects = []
     let filteredProjects = []
@@ -421,7 +431,17 @@
     // Load projects
     async function loadProjects() {
       try {
-        const { data, error } = await supabase
+        const client = await initSupabase()
+        const noProjects = document.getElementById('noProjects')
+        if (!client) {
+          if (noProjects) {
+            noProjects.textContent = '项目加载失败：服务未就绪，请刷新页面重试'
+            noProjects.classList.remove('hidden')
+          }
+          return
+        }
+
+        const { data, error } = await client
           .from('projects')
           .select('*')
           .eq('published', true)
@@ -457,6 +477,13 @@
         renderProjects()
       } catch (err) {
         console.error('加载项目失败:', err)
+        const grid = document.getElementById('portfolioGrid')
+        const noProjects = document.getElementById('noProjects')
+        if (grid) grid.innerHTML = ''
+        if (noProjects) {
+          noProjects.textContent = '项目加载失败，请稍后重试'
+          noProjects.classList.remove('hidden')
+        }
       }
     }
 
