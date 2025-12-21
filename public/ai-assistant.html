@@ -279,7 +279,7 @@
         // 方案1: 如果前台和后台在同一域名，使用相对路径
         const adminApiOrigin = window.location.hostname.startsWith('admin.')
           ? window.location.origin
-          : 'https://admin.105911.xyz'
+          : 'https://admin.weidu.shop'
         window.CHAT_API_URL = adminApiOrigin + '/api/chat'
         
         // 方案2: 如果后台在子路径 /admin 下，取消下面注释
