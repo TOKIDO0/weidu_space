@@ -28,7 +28,6 @@
     ::-webkit-scrollbar-track { background: #0a0a0a; }
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--brand-orange); }
-
     .unicorn-mobile-video {
       opacity: 0;
       pointer-events: none;
@@ -114,10 +113,22 @@
 <body class="bg-neutral-950 text-neutral-200 antialiased selection:bg-orange-500 selection:text-white">
 
 <!-- Background (component) added by Aura -->
-<div class="aura-background-component fixed top-0 w-full h-screen -z-10" data-alpha-mask="80" style="mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent)"><div data-us-project="tCcBHRpF4pd3u3hQXCm5" class="absolute w-full h-full left-0 top-0 -z-10"></div>
-<script type="text/javascript">
-  !function(){if(!window.UnicornStudio){window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="vendor/unicornStudio.umd.js",i.onload=function(){window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)},(document.head || document.body).appendChild(i)}}();
-</script></div>
+<div class="aura-background-component fixed top-0 w-full h-screen -z-10" data-alpha-mask="80" style="mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent)" data-unicorn-desktop-wrapper>
+  <video
+    class="unicorn-mobile-video absolute inset-0 w-full h-full object-cover"
+    data-unicorn-mobile-video
+    playsinline
+    autoplay
+    muted
+    loop
+    preload="auto"
+    poster="/images/unicorn-video-poster.jpeg">
+    <source src="/videos/unicorn-mobile.mp4.webm" type="video/webm">
+    <source src="/videos/unicorn-mobile.mp4" type="video/mp4">
+  </video>
+  <div data-us-project="tCcBHRpF4pd3u3hQXCm5" class="absolute w-full h-full left-0 top-0 -z-10"></div>
+  <div class="unicorn-fallback" data-unicorn-fallback></div>
+</div>
 
   <!-- Navbar -->
   <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-neutral-950/70 backdrop-blur-xl">
