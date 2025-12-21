@@ -7,6 +7,8 @@
   if (!projectNodes.length) return
 
   const fallbackNodes = document.querySelectorAll('[data-unicorn-fallback]')
+  const mobileVideos = document.querySelectorAll('[data-unicorn-mobile-video]')
+  const desktopWrappers = document.querySelectorAll('[data-unicorn-desktop-wrapper]')
   const isMobile =
     typeof window.matchMedia === 'function'
       ? window.matchMedia('(max-width: 768px)').matches
@@ -18,6 +20,33 @@
 
   const hideFallback = () => {
     fallbackNodes.forEach((node) => node.classList.remove('is-visible'))
+  }
+
+  const hideDesktopCanvas = () => {
+    desktopWrappers.forEach((wrapper) => wrapper.classList.add('is-hidden'))
+  }
+
+  const showDesktopCanvas = () => {
+    desktopWrappers.forEach((wrapper) => wrapper.classList.remove('is-hidden'))
+  }
+
+  const activateMobileVideo = () => {
+    if (!mobileVideos.length) return false
+    mobileVideos.forEach((video) => {
+      video.classList.add('is-visible')
+      const playPromise = video.play?.()
+      if (playPromise?.catch) {
+        playPromise.catch(() => {})
+      }
+    })
+    hideDesktopCanvas()
+    hideFallback()
+    return true
+  }
+
+  const deactivateMobileVideo = () => {
+    mobileVideos.forEach((video) => video.classList.remove('is-visible'))
+    showDesktopCanvas()
   }
 
   const initUnicorn = () => {
@@ -53,7 +82,17 @@
       document.head.appendChild(script)
     })
 
-  const timeoutDuration = isMobile ? 1200 : 3500
+  if (isMobile) {
+    if (activateMobileVideo()) {
+      return
+    }
+    showFallback()
+    return
+  }
+
+  deactivateMobileVideo()
+
+  const timeoutDuration = 3500
   const fallbackTimer = setTimeout(() => {
     if (!window.UnicornStudio?.isInitialized) {
       showFallback()

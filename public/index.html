@@ -1,6 +1,9 @@
 <html lang="zh-CN" class="scroll-smooth"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WeiDU | 维度空间设计</title>
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
 <link rel="stylesheet" href="vendor/tailwind.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +15,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="vendor/unicorn-loader.js"></script>
 <style>
 /* Fonts */
 :root {
@@ -32,6 +36,45 @@ body {
 ::-webkit-scrollbar-track { background: #0a0a0a; }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand-orange); }
+
+/* Unicorn background control */
+.unicorn-mobile-video {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s var(--ease-smooth);
+}
+.unicorn-mobile-video.is-visible {
+    opacity: 1;
+}
+[data-unicorn-desktop-wrapper].is-hidden [data-us-project] {
+    opacity: 0;
+    visibility: hidden;
+}
+.unicorn-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 20% 20%, rgba(255, 77, 0, 0.35), transparent 55%),
+                radial-gradient(circle at 80% 30%, rgba(0, 122, 255, 0.25), transparent 45%),
+                #050505;
+    opacity: 0;
+    transition: opacity 0.8s var(--ease-smooth);
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+.unicorn-fallback::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(120deg, rgba(255, 255, 255, 0.08) 0%, transparent 35%),
+                      linear-gradient(300deg, rgba(255, 255, 255, 0.05) 10%, transparent 45%);
+    opacity: 0.6;
+}
+.unicorn-fallback.is-visible {
+    opacity: 1;
+}
 
 /* --- General Animations --- */
 @keyframes icon-enter {
@@ -464,10 +507,21 @@ body {
 <body class="bg-neutral-950 text-neutral-200 antialiased selection:bg-orange-500 selection:text-white">
 
 <!-- Background (component) added by Aura -->
-<div class="aura-background-component fixed top-0 w-full h-screen -z-10" data-alpha-mask="80" style="mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent)"><div data-us-project="tCcBHRpF4pd3u3hQXCm5" class="absolute w-full h-full left-0 top-0 -z-10"></div>
-<script type="text/javascript">
-  !function(){if(!window.UnicornStudio){window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="vendor/unicornStudio.umd.js",i.onload=function(){window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)},(document.head || document.body).appendChild(i)}}();
-</script></div>
+<div class="aura-background-component fixed top-0 w-full h-screen -z-10" data-alpha-mask="80" style="mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent)" data-unicorn-desktop-wrapper>
+  <video
+    class="unicorn-mobile-video absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700"
+    data-unicorn-mobile-video
+    playsinline
+    autoplay
+    muted
+    loop
+    preload="auto"
+    poster="/images/unicorn-video-poster.jpeg">
+    <source src="/videos/unicorn-mobile.mp4.webm" type="video/webm">
+  </video>
+  <div data-us-project="tCcBHRpF4pd3u3hQXCm5" class="absolute w-full h-full left-0 top-0 -z-10"></div>
+  <div class="unicorn-fallback" data-unicorn-fallback></div>
+</div>
 
     <!-- Navbar -->
     <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-neutral-950/70 backdrop-blur-xl">

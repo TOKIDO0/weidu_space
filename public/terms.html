@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>条款说明 - 维度空间设计</title>
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="vendor/tailwind.css">
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <script defer src="vendor/unicorn-loader.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Outfit:wght@200;300;400;600&family=Syncopate:wght@400;700&display=swap');
     :root {
@@ -25,6 +28,47 @@
     ::-webkit-scrollbar-track { background: #0a0a0a; }
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--brand-orange); }
+
+    .unicorn-mobile-video {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .unicorn-mobile-video.is-visible {
+      opacity: 1;
+    }
+    [data-unicorn-desktop-wrapper] [data-us-project] {
+      transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    [data-unicorn-desktop-wrapper].is-hidden [data-us-project] {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .unicorn-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 77, 0, 0.35), transparent 55%),
+                  radial-gradient(circle at 80% 30%, rgba(0, 122, 255, 0.25), transparent 45%),
+                  #050505;
+      opacity: 0;
+      transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+    .unicorn-fallback::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(120deg, rgba(255, 255, 255, 0.08) 0%, transparent 35%),
+                        linear-gradient(300deg, rgba(255, 255, 255, 0.05) 10%, transparent 45%);
+      opacity: 0.6;
+    }
+    .unicorn-fallback.is-visible {
+      opacity: 1;
+    }
 
     .water-glass-card {
       background: rgba(255, 255, 255, 0.03);
