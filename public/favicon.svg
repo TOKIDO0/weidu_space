@@ -1,0 +1,5 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="WeiDU logo">
+  <rect width="512" height="512" rx="42" fill="#050505"/>
+  <path d="M110 88H300L212 296H24L110 88Z" fill="white"/>
+  <path d="M220 296H488L402 424H134L220 296Z" fill="white"/>
+</svg>
